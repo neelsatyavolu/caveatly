@@ -1,0 +1,28 @@
+/* Fineprint — Radii, borders, shadows, motion.
+   Soft-but-crisp: modest radii, hairline warm borders, low-spread paper shadows.
+   No heavy glows, no colored shadows. */
+:root {
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 13px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  --border-hair: 1px;
+  --border-thick: 1.5px;
+
+  /* Shadows — warm ink, low alpha, tight */
+  --shadow-xs: 0 1px 2px rgba(32,30,34,0.06);
+  --shadow-sm: 0 1px 3px rgba(32,30,34,0.08), 0 1px 2px rgba(32,30,34,0.04);
+  --shadow-md: 0 4px 12px rgba(32,30,34,0.09), 0 1px 3px rgba(32,30,34,0.05);
+  --shadow-lg: 0 12px 32px rgba(32,30,34,0.14), 0 4px 10px rgba(32,30,34,0.06);
+  --shadow-popup: 0 18px 48px rgba(23,22,26,0.20), 0 2px 8px rgba(23,22,26,0.10);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-med: 200ms;
+  --dur-slow: 320ms;
+}

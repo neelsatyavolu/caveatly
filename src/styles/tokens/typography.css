@@ -1,0 +1,37 @@
+/* Fineprint — Typography tokens.
+   Three roles: sans (Hanken Grotesk) for all UI, serif (Newsreader) for editorial
+   display + long-form legal prose, mono (JetBrains Mono) for verbatim clauses. */
+:root {
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  /* Type scale (rem, 16px base) */
+  --fs-display: 3.25rem;   /* 52 — hero / marketing */
+  --fs-h1: 2.25rem;        /* 36 */
+  --fs-h2: 1.625rem;       /* 26 */
+  --fs-h3: 1.25rem;        /* 20 */
+  --fs-h4: 1.0625rem;      /* 17 */
+  --fs-body-lg: 1rem;      /* 16 */
+  --fs-body: 0.9375rem;    /* 15 — extension default */
+  --fs-sm: 0.8125rem;      /* 13 */
+  --fs-xs: 0.6875rem;      /* 11 — labels, meta */
+
+  /* Line heights */
+  --lh-tight: 1.1;
+  --lh-snug: 1.28;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  /* Letter spacing */
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-label: 0.06em;
+}

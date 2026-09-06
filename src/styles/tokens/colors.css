@@ -1,0 +1,72 @@
+/* Fineprint — Color tokens.
+   Warm-paper + ink editorial base, one confident teal brand accent, and a
+   3-tier risk system (safe / caution / concern + critical) that is the product's
+   signature. Traffic-light hues are RESERVED for risk — never decorative. */
+:root {
+  /* — Ink (warm-tinted neutrals) — */
+  --ink-950: #17161a;
+  --ink-900: #201e22;
+  --ink-800: #2f2c31;
+  --ink-700: #45413f;
+  --ink-600: #5c5852;
+  --ink-500: #78736b;
+  --ink-400: #9d978c;
+  --ink-300: #c2bcb0;
+  --ink-200: #ded8cc;
+  --ink-150: #e8e2d7;
+  --ink-100: #f0ebe1;
+
+  /* — Paper (warm surfaces) — */
+  --paper-000: #ffffff;
+  --paper-050: #fbf9f4;
+  --paper-100: #f7f4ee;
+  --paper-200: #f1ede4;
+  --paper-300: #e9e3d8;
+
+  /* — Brand: teal (trust / verified) — */
+  --teal-50:  #e7f2ef;
+  --teal-100: #c9e4de;
+  --teal-300: #67b3a4;
+  --teal-500: #16816f;
+  --teal-600: #12735f;   /* primary */
+  --teal-700: #0e5c4c;
+  --teal-800: #0a463a;
+
+  /* — Highlighter (signature marker accent, backgrounds only) — */
+  --marker-yellow: #ffe487;
+  --marker-yellow-soft: #fff3c9;
+
+  /* — Risk tiers — */
+  --safe-600: #3a8f5c;  --safe-500: #4aa06b;  --safe-tint: #e9f4ec;  --safe-border: #bfe0cb;
+  --caution-600: #b9791a; --caution-500: #cf8b21; --caution-tint: #fbf0d9; --caution-border: #ecd39c;
+  --concern-600: #c23c2d; --concern-500: #d24b3b; --concern-tint: #fbe9e5; --concern-border: #efc3ba;
+  --critical-700: #8f271a; --critical-600: #a5301f; --critical-tint: #f6e0da; --critical-border: #e2ab9e;
+
+  /* — Focus — */
+  --focus-ring: #16816f;
+
+  /* ————— Semantic aliases ————— */
+  --text-strong: var(--ink-950);
+  --text-body: var(--ink-800);
+  --text-muted: var(--ink-500);
+  --text-faint: var(--ink-400);
+  --text-inverse: var(--paper-050);
+  --text-brand: var(--teal-700);
+  --text-link: var(--teal-700);
+  --text-link-hover: var(--teal-800);
+
+  --surface-page: var(--paper-100);
+  --surface-card: var(--paper-000);
+  --surface-sunken: var(--paper-200);
+  --surface-inverse: var(--ink-950);
+
+  --border-subtle: var(--ink-150);
+  --border-default: var(--ink-200);
+  --border-strong: var(--ink-300);
+
+  --accent: var(--teal-600);
+  --accent-hover: var(--teal-700);
+  --accent-active: var(--teal-800);
+  --accent-tint: var(--teal-50);
+  --on-accent: #ffffff;
+}

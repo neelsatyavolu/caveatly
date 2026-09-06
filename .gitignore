@@ -1,0 +1,9 @@
+.env
+node_modules/
+dist/
+.pw-profile/
+screenshots/
+.DS_Store
+.agmux/
+.grok/
+.claude/

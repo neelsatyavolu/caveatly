@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fineprint</title>
+<link rel="stylesheet" href="styles/styles.css">
+<style>
+  /* Pin width in the initial stylesheet so Chrome sizes the action popup
+     to the report, not the browser default/max (otherwise a 380px column
+     sits in a huge empty panel). */
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 380px;
+    width: var(--popup-width);
+    min-width: 380px;
+    min-width: var(--popup-width);
+    max-width: 380px;
+    max-width: var(--popup-width);
+    background: var(--surface-page);
+  }
+  html[data-view="report"],
+  html[data-view="report"] body {
+    width: var(--panel-width);
+    min-width: var(--panel-width);
+    max-width: var(--panel-width);
+  }
+  body {
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  #root { width: 100%; }
+  .fp-progress { animation: fp-sweep 1.4s var(--ease-in-out) infinite alternate; }
+  @keyframes fp-sweep {
+    from { width: 12%; }
+    to { width: 88%; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="popup.js"></script>
+</body>
+</html>
