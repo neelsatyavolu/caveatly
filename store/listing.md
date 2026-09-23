@@ -45,7 +45,7 @@ AI summaries can be wrong and are not legal advice.
 - Small promo tile (440×280): `promo-small-440x280.png`
 - Marquee promo tile (1400×560): `promo-marquee-1400x560.png`
 
-**Official URL:** none · **Homepage URL:** https://caveatly.vercel.app
+**Official URL:** none · **Homepage URL:** https://caveatly.n3el.dev
 **Support URL:** https://github.com/neelsatyavolu/caveatly/issues
 
 ## Privacy practices
@@ -74,7 +74,9 @@ Note: the user's Gemini API key is stored locally and sent only to Google as the
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose.
 - I do not use or transfer user data to determine creditworthiness or for lending purposes.
 
-**Privacy policy URL:** https://caveatly.vercel.app/privacy
+**Privacy policy URL:** https://caveatly.n3el.dev/privacy
+
+> v0.1.1 was submitted with the old `https://caveatly.vercel.app` homepage/privacy URLs; that alias still serves the same site. Update both fields in the dashboard on the next submission.
 
 ## Distribution
 

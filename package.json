@@ -5,7 +5,7 @@
   "description": "Caveatly — Chrome extension that reads the fine print for you.",
   "license": "MIT",
   "repository": "github:neelsatyavolu/caveatly",
-  "homepage": "https://caveatly.vercel.app",
+  "homepage": "https://caveatly.n3el.dev",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

@@ -5,7 +5,7 @@ Privacy Policy with Gemini and flags what matters in three tiers
 (safe / caution / concern), graded A–F. UI implemented from the Caveatly
 design-system project (`ui_kits/extension`).
 
-**Website:** https://caveatly.vercel.app ·
+**Website:** https://caveatly.n3el.dev ·
 **Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
 **License:** [MIT](LICENSE)
 
