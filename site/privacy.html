@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Caveatly</title>
+  <meta name="description" content="What the Caveatly Chrome extension stores, what it sends, and to whom.">
+  <link rel="icon" type="image/png" href="/assets/icon32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="/" aria-label="Caveatly home">
+      <img src="/assets/icon128.png" alt="" width="30" height="30">
+      <span>Caveatly</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#how">How it works</a>
+      <a href="/#install">Install</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/neelsatyavolu/caveatly">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="prose wrap">
+    <p class="eyebrow">Last updated September 23, 2026</p>
+    <h1>Privacy Policy</h1>
+    <p class="lede">Caveatly is a Chrome extension that reads a website’s Terms of Service and Privacy Policy with AI and flags what matters. It has no server, no account, and no analytics. This page explains exactly what it handles.</p>
+
+    <h2>What Caveatly sends, and to whom</h2>
+    <p>When you scan a site, Caveatly sends two things to <b>Google’s Gemini API</b> (<code>generativelanguage.googleapis.com</code>), using the API key you entered:</p>
+    <ul>
+      <li>the text of the site’s Terms of Service and Privacy Policy pages, and</li>
+      <li>the site’s domain name (for example, <code>example.com</code>), so the summary can name it.</li>
+    </ul>
+    <p>That is the only data that leaves your browser. Caveatly never sends your browsing history, the contents of other pages, form entries, passwords, or anything that identifies you. Google handles this data under the <a href="https://ai.google.dev/gemini-api/terms">Gemini API Terms of Service</a>. If you use Gemini’s free tier, those terms allow Google to use submitted content to improve its products; a paid Gemini key changes that.</p>
+    <p>To find and read the legal pages, Caveatly also loads them directly from the website you are on, just as your browser would if you clicked the links.</p>
+
+    <h2>What Caveatly stores on your device</h2>
+    <ul>
+      <li><b>Your Gemini API key</b>, in <code>chrome.storage.local</code>. It stays on this device, is never synced, and is only ever sent to Google’s Gemini API.</li>
+      <li><b>Scan reports</b> for the sites you scanned, in <code>chrome.storage.local</code>, so you don’t have to re-scan. These include the site’s domain and the flagged clauses.</li>
+      <li><b>Prompt choices</b>, such as dismissing the on-page scan prompt for a domain, in <code>chrome.storage.local</code>.</li>
+      <li><b>Your settings</b> (the on/off toggles and scan mode), in <code>chrome.storage.sync</code>. If you use Chrome sync, Google syncs these toggles between your devices. Your API key is never included.</li>
+    </ul>
+    <p>Removing the extension deletes all of this.</p>
+
+    <h2>Privacy features</h2>
+    <p>Depending on your settings, Caveatly clicks “necessary only” or “reject all” on common cookie banners, sends the <code>Sec-GPC: 1</code> Global Privacy Control signal to sites you visit, and removes tracking parameters such as <code>utm_*</code>, <code>gclid</code> and <code>fbclid</code> from links you open. All of this happens locally, in your browser.</p>
+
+    <h2>What Caveatly does not do</h2>
+    <ul>
+      <li>It does not sell or share your data with anyone.</li>
+      <li>It does not use your data for advertising, credit decisions, or anything unrelated to explaining the legal pages you scan.</li>
+      <li>It has no analytics, tracking, or crash reporting, and it runs no remote code.</li>
+    </ul>
+
+    <h2>Why it needs access to all websites</h2>
+    <p>Terms and privacy links can appear on any website, and the cookie-banner, Global Privacy Control and tracking-parameter features apply wherever you browse. Caveatly reads a page only to find those links and banners; it never collects or sends page contents except the legal documents you choose to scan.</p>
+
+    <h2>Children</h2>
+    <p>Caveatly is not directed at children under 13 and does not knowingly collect any information from them.</p>
+
+    <h2>Changes and contact</h2>
+    <p>If this policy changes, the new version will be posted on this page with a new date. Caveatly is open source, so you can check every line of the code on <a href="https://github.com/neelsatyavolu/caveatly">GitHub</a>. Questions? <a href="https://github.com/neelsatyavolu/caveatly/issues">Open an issue on GitHub</a>.</p>
+  </main>
+
+  <footer class="footer wrap">
+    <span>Caveatly · <a href="/privacy">Privacy</a> · <a href="https://github.com/neelsatyavolu/caveatly/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/neelsatyavolu/caveatly">GitHub</a></span>
+    <span class="muted">AI summaries can be wrong and are not legal advice.</span>
+  </footer>
+</body>
+</html>

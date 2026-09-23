@@ -1,3 +1,31 @@
-/* Caveatly webfonts — Google Fonts stand-ins (see design-system readme "Fonts").
-   Hanken Grotesk = UI sans · Newsreader = editorial serif · JetBrains Mono = clause/code mono. */
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Caveatly webfonts — bundled locally (no requests to Google Fonts).
+   Hanken Grotesk = UI sans · Newsreader = editorial serif · JetBrains Mono = clause/code mono.
+   Latin variable files are copied from @fontsource-variable/* by build.mjs (SIL OFL 1.1). */
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(../fonts/hanken-grotesk-latin-wght-normal.woff2) format('woff2-variations');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(../fonts/newsreader-latin-opsz-normal.woff2) format('woff2-variations');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(../fonts/newsreader-latin-opsz-italic.woff2) format('woff2-variations');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url(../fonts/jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations');
+}

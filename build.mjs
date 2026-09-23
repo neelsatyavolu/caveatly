@@ -21,4 +21,16 @@ cpSync('src/popup.html', 'dist/popup.html');
 cpSync('src/styles', 'dist/styles', { recursive: true });
 cpSync('src/icons', 'dist/icons', { recursive: true });
 
+// Bundle webfonts so the popup makes no requests to Google Fonts.
+const FONTS = [
+  ['hanken-grotesk', 'hanken-grotesk-latin-wght-normal.woff2'],
+  ['newsreader', 'newsreader-latin-opsz-normal.woff2'],
+  ['newsreader', 'newsreader-latin-opsz-italic.woff2'],
+  ['jetbrains-mono', 'jetbrains-mono-latin-wght-normal.woff2'],
+];
+mkdirSync('dist/styles/fonts', { recursive: true });
+for (const [pkg, file] of FONTS) {
+  cpSync(`node_modules/@fontsource-variable/${pkg}/files/${file}`, `dist/styles/fonts/${file}`);
+}
+
 console.log('Built extension into dist/');
