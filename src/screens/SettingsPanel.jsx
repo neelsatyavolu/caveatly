@@ -75,12 +75,12 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
       </Section>
       <Section title="Scanning">
         <div>
-          <div style={{ fontFamily: 'var(--font-sans)', fontWeight: 'var(--fw-medium)', fontSize: 'var(--fs-body)', color: 'var(--text-strong)' }}>When Fineprint finds terms or a privacy policy</div>
+          <div style={{ fontFamily: 'var(--font-sans)', fontWeight: 'var(--fw-medium)', fontSize: 'var(--fs-body)', color: 'var(--text-strong)' }}>When Caveatly finds terms or a privacy policy</div>
           <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginTop: 1, marginBottom: 9 }}>
             Only on sites you have not scanned yet. Opening the toolbar never starts a scan by itself.
             {' '}
             {settings.pageScan === 'auto'
-              ? 'Auto-scan is on — Fineprint will scan and open the report.'
+              ? 'Auto-scan is on — Caveatly will scan and open the report.'
               : settings.pageScan === 'ask'
                 ? 'Ask first — a small toast offers to scan.'
                 : 'Off — no on-page prompts or auto-scans.'}
@@ -101,7 +101,7 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
           </div>
         </div>
       </Section>
-      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Fineprint · v0.1 · settings sync locally</div>
+      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Caveatly · v0.1 · settings sync locally</div>
     </div>
   );
 }

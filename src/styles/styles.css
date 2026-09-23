@@ -1,4 +1,4 @@
-/* Fineprint design system — global entry point.
+/* Caveatly design system — global entry point.
    Consumers link THIS file only. It is an @import manifest; no rules live here. */
 @import url('./tokens/fonts.css');
 @import url('./tokens/colors.css');

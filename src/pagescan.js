@@ -17,7 +17,7 @@
   if (!hasKey) return;
 
   // Already handled this origin — don't re-toast (session or durable).
-  if (sessionStorage.getItem('__fineprint_prompted')) return;
+  if (sessionStorage.getItem('__caveatly_prompted')) return;
   if (local[promptKey] === 'dismissed') return;
   const { report: cached } = await chrome.runtime.sendMessage({ type: 'getCached', origin }).catch(() => ({ report: null }));
   if (cached) return;
@@ -92,11 +92,11 @@
   const { report: cachedNow } = await chrome.runtime.sendMessage({ type: 'getCached', origin }).catch(() => ({ report: null }));
   if (cachedNow) return;
 
-  sessionStorage.setItem('__fineprint_prompted', '1');
+  sessionStorage.setItem('__caveatly_prompted', '1');
 
   // ————— Toast UI (shadow DOM) —————
   const host = document.createElement('div');
-  host.id = 'fineprint-prompt';
+  host.id = 'caveatly-prompt';
   const shadow = host.attachShadow({ mode: 'open' });
   shadow.innerHTML = `
     <style>
@@ -125,7 +125,7 @@
         align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: 600; font-size: 22px; background: #fff; }
       .hidden { display: none; }
     </style>
-    <div class="card" role="dialog" aria-label="Fineprint">
+    <div class="card" role="dialog" aria-label="Caveatly">
       <button class="close" aria-label="Dismiss">✕</button>
       <div class="row" id="ask">
         <span class="mark">F</span>
@@ -169,7 +169,7 @@
     el('headline').textContent = "Couldn't scan this page.";
     el('grade').textContent = '–';
     el('grade').style.color = el('grade').style.borderColor = '#9d978c';
-    el('detail').textContent = resp?.message || 'Open the Fineprint popup to try again.';
+    el('detail').textContent = resp?.message || 'Open the Caveatly popup to try again.';
     show('done');
     setTimeout(() => host.remove(), 8000);
   }

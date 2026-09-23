@@ -1,19 +1,19 @@
-# Fineprint — Chrome extension
+# Caveatly — Chrome extension
 
 Reads the fine print for you: scans the current site's Terms of Service and
 Privacy Policy with Gemini and flags what matters in three tiers
-(safe / caution / concern), graded A–F. UI implemented from the Fineprint
+(safe / caution / concern), graded A–F. UI implemented from the Caveatly
 design-system project (`ui_kits/extension`).
 
-**Website:** https://fineprint-blond.vercel.app ·
-**Download:** [fineprint.zip](https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip) ·
+**Website:** https://caveatly.vercel.app ·
+**Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
 **License:** [MIT](LICENSE)
 
 ## Install from a release
 
-1. Download [`fineprint.zip`](https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip) and unzip it.
-2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick the unzipped `fineprint/` folder.
-3. Add your Gemini API key in Fineprint → **Settings** (free from [Google AI Studio](https://aistudio.google.com/apikey)).
+1. Download [`caveatly.zip`](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) and unzip it.
+2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick the unzipped `caveatly/` folder.
+3. Add your Gemini API key in Caveatly → **Settings** (free from [Google AI Studio](https://aistudio.google.com/apikey)).
 
 ## Build from source
 
@@ -23,9 +23,9 @@ npm run build        # bundles into dist/
 ```
 
 1. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick `dist/`.
-2. Click the Fineprint toolbar icon → **Settings** → paste your Gemini API key (`AIza…` from aistudio.google.com).
+2. Click the Caveatly toolbar icon → **Settings** → paste your Gemini API key (`AIza…` from aistudio.google.com).
    The key is stored in `chrome.storage.local` only — never synced.
-3. Visit any site, open the popup, and hit **Scan this page**. Optional: in Settings set **Auto-scan** so Fineprint scans when it finds terms/privacy on a domain you have not scanned yet (never when you only open the toolbar).
+3. Visit any site, open the popup, and hit **Scan this page**. Optional: in Settings set **Auto-scan** so Caveatly scans when it finds terms/privacy on a domain you have not scanned yet (never when you only open the toolbar).
 
 ## How a scan works
 

@@ -13,7 +13,7 @@ const VALID_TIERS = new Set(['safe', 'caution', 'concern']);
 // keep it for the service worker's lifetime.
 const learnedBudgets = new Map();
 
-const SYSTEM_PROMPT = `You are Fineprint, an assistant that reads terms-of-service and privacy-policy text and explains what matters to an everyday reader with no legal background.
+const SYSTEM_PROMPT = `You are Caveatly, an assistant that reads terms-of-service and privacy-policy text and explains what matters to an everyday reader with no legal background.
 Respond ONLY with JSON in this exact shape:
 {"flags":[{"tier":"safe|caution|concern","title":"...","explanation":"...","clauseRef":"...","topic":"...","quote":"..."}]}
 Rules:

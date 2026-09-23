@@ -7,7 +7,7 @@
 
   // Some sites reload after a consent click without persisting the choice —
   // cap attempts per tab (sessionStorage survives reloads) to break the loop.
-  const ATTEMPTS_KEY = '__fineprint_consent_attempts';
+  const ATTEMPTS_KEY = '__caveatly_consent_attempts';
   const priorAttempts = Number(sessionStorage.getItem(ATTEMPTS_KEY) || 0);
   if (priorAttempts >= 2) return;
 

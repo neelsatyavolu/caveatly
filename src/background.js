@@ -1,4 +1,4 @@
-// Fineprint MV3 service worker: orchestrates page scans, caches reports per
+// Caveatly MV3 service worker: orchestrates page scans, caches reports per
 // origin, keeps the toolbar badge in sync, and applies privacy network rules.
 import { extractLegalSources } from './lib/extract-page.js';
 import { htmlToText } from './lib/html-to-text.js';
@@ -183,7 +183,7 @@ async function gatherDocs(extracted, tabId) {
 async function runScan(tabId) {
   const tab = await chrome.tabs.get(tabId);
   if (!tab.url || !/^https?:/.test(tab.url)) {
-    return { ok: false, error: 'unsupported-page', message: 'Fineprint can only scan regular web pages.' };
+    return { ok: false, error: 'unsupported-page', message: 'Caveatly can only scan regular web pages.' };
   }
 
   const { apiKey, apiBase, model, maxInputChars, maxOutputTokens } = await getApiConfig();

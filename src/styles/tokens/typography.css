@@ -1,4 +1,4 @@
-/* Fineprint — Typography tokens.
+/* Caveatly — Typography tokens.
    Three roles: sans (Hanken Grotesk) for all UI, serif (Newsreader) for editorial
    display + long-form legal prose, mono (JetBrains Mono) for verbatim clauses. */
 :root {

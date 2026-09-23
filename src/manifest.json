@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Fineprint",
+  "name": "Caveatly",
   "version": "0.1.0",
   "description": "Reads the fine print for you — scans terms of service & privacy policies with AI and flags what matters.",
   "permissions": ["storage", "scripting", "tabs", "declarativeNetRequest", "favicon"],
@@ -14,7 +14,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Fineprint",
+    "default_title": "Caveatly",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

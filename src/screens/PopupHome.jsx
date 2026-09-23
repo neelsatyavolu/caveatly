@@ -34,8 +34,12 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--surface-card)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--teal-600)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 16 }}>F</span>
-          <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 18, color: 'var(--text-strong)', letterSpacing: '-0.02em' }}>Fineprint</span>
+          <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--teal-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg viewBox="0 0 100 100" width="16" height="16" fill="none" stroke="#fff" strokeWidth="15" strokeLinecap="round" aria-hidden="true">
+              <path d="M50 18v64" /><path d="M22.3 34 77.7 66" /><path d="M22.3 66 77.7 34" />
+            </svg>
+          </span>
+          <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 18, color: 'var(--text-strong)', letterSpacing: '-0.02em' }}>Caveatly</span>
         </div>
         <IconButton label="Settings" onClick={onOpenSettings}><Settings size={18} /></IconButton>
       </div>
@@ -65,7 +69,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
           <EmptyState
             icon={<KeyRound size={26} />}
             headline="Connect your Gemini API key"
-            body="Fineprint uses Gemini to read terms & policies. Add your key once in settings to start scanning."
+            body="Caveatly uses Gemini to read terms & policies. Add your key once in settings to start scanning."
             action={<Button onClick={onOpenSettings} iconRight={<ArrowRight size={17} />}>Open settings</Button>}
           />
         )}
@@ -80,7 +84,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
 
         {status === 'no-tab' && (
-          <EmptyState icon={<Globe size={26} />} headline="Open a website first" body="Fineprint scans regular web pages — switch to a site and try again." />
+          <EmptyState icon={<Globe size={26} />} headline="Open a website first" body="Caveatly scans regular web pages — switch to a site and try again." />
         )}
 
         {status === 'error' && (

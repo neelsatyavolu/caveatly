@@ -31,7 +31,7 @@ const variants = {
 
 const hoverBg = { primary: 'var(--accent-hover)', danger: 'var(--critical-600)' };
 
-/** Fineprint primary action button. */
+/** Caveatly primary action button. */
 export function Button({
   variant = 'primary',
   size = 'md',

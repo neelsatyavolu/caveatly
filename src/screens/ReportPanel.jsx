@@ -9,7 +9,7 @@ const TABS = ['All', 'Concern', 'Caution', 'Safe'];
 
 function reportAsText(report) {
   const lines = [
-    `Fineprint report — ${report.site} (grade ${report.grade})`,
+    `Caveatly report — ${report.site} (grade ${report.grade})`,
     `${report.scannedAt}`,
     `${report.stats.clauses} clauses flagged · ${report.stats.concern} concern · ${report.stats.caution} caution · ${report.stats.safe} safe`,
     '',

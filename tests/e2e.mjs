@@ -130,7 +130,7 @@ try {
   const signupPage = await context.newPage();
   try {
     await signupPage.goto('https://stripe.com/privacy', { waitUntil: 'domcontentloaded', timeout: 45000 });
-    const scanNow = signupPage.locator('#fineprint-prompt button.scan');
+    const scanNow = signupPage.locator('#caveatly-prompt button.scan');
     await scanNow.waitFor({ timeout: 15000 });
     check(true, 'scan prompt appeared on signup page');
     await scanNow.click();
