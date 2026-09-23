@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fineprint — Read the fine print, finally</title>
+  <meta name="description" content="A free, open-source Chrome extension that scans Terms of Service and Privacy Policies with AI and flags what matters, graded A–F.">
+  <meta property="og:title" content="Fineprint — Read the fine print, finally">
+  <meta property="og:description" content="Free, open-source Chrome extension that flags what matters in Terms of Service and Privacy Policies.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/icon128.png">
+  <link rel="icon" type="image/png" href="/assets/icon32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="/" aria-label="Fineprint home">
+      <img src="/assets/icon128.png" alt="" width="30" height="30">
+      <span>Fineprint</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#install">Install</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/neelsatyavolu/fineprint">
+        <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">Free &amp; open-source Chrome extension</p>
+        <h1>Read the fine print <span class="marker">before</span> you click “I agree.”</h1>
+        <p class="lede">Fineprint scans a site’s Terms of Service and Privacy Policy with AI, flags the clauses that matter, and grades the whole thing A–F — in a few seconds.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            Download for Chrome
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/neelsatyavolu/fineprint">View source on GitHub</a>
+        </div>
+        <ul class="meta">
+          <li>MIT licensed</li>
+          <li>No account</li>
+          <li>Bring your own free Gemini key</li>
+        </ul>
+      </div>
+
+      <figure class="popup" aria-label="Example Fineprint report for a fictional site">
+        <div class="popup-head">
+          <span class="popup-brand"><img src="/assets/icon128.png" alt="" width="22" height="22"> Fineprint</span>
+        </div>
+        <div class="popup-site">
+          <span class="site-dot" aria-hidden="true">A</span>
+          <span><strong>acme-cloud.app</strong><small>Terms of Service · Privacy Policy</small></span>
+        </div>
+        <div class="popup-grade">
+          <span class="grade">C</span>
+          <span><span class="grade-title">Read carefully before you sign up.</span><small>2 concerns worth your attention.</small></span>
+        </div>
+        <div class="stats">
+          <span class="stat"><b>6</b>Clauses</span>
+          <span class="stat stat-caution"><b>2</b>Caution</span>
+          <span class="stat stat-concern"><b>2</b>Concern</span>
+        </div>
+        <ul class="flags">
+          <li class="flag concern"><span class="tag">Concern</span><b>Shares data with ad partners</b><small>Personal data may be passed to advertising and analytics companies.</small></li>
+          <li class="flag concern"><span class="tag">Concern</span><b>Broad license to your content</b><small>You grant a worldwide, royalty-free license to what you upload.</small></li>
+          <li class="flag caution"><span class="tag">Caution</span><b>Terms can change without notice</b><small>Continued use counts as accepting future changes.</small></li>
+        </ul>
+        <figcaption>Example report for a fictional site.</figcaption>
+      </figure>
+    </section>
+
+    <section id="how" class="section wrap">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li>
+          <span class="num">1</span>
+          <h3>Finds the legal pages</h3>
+          <p>On any site, Fineprint locates the Terms and Privacy links — HTML or PDF — or notices when you’re already reading one.</p>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <h3>Reads every clause</h3>
+          <p>The policy text goes to Google Gemini with your key. It returns plain-English flags, each with a clause reference and a verbatim quote.</p>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <h3>Grades what it found</h3>
+          <p>Each flag is sorted into three tiers and the report is graded A–F. Nothing hidden behind jargon.</p>
+        </li>
+      </ol>
+
+      <div class="tiers" aria-label="Risk tiers">
+        <div class="tier safe"><span class="tag">Safe</span><p>Reasonable, user-friendly terms — like letting you delete your data at any time.</p></div>
+        <div class="tier caution"><span class="tag">Caution</span><p>Worth knowing — like auto-renewing subscriptions or tracking cookies on by default.</p></div>
+        <div class="tier concern"><span class="tag">Concern</span><p>Read before agreeing — like selling your data or waiving your right to sue.</p></div>
+      </div>
+    </section>
+
+    <section id="privacy" class="section wrap privacy">
+      <div>
+        <h2>Private by design</h2>
+        <p class="lede">There is no Fineprint server. The extension talks to one service — Google Gemini — using a key you control.</p>
+      </div>
+      <ul class="checks">
+        <li><b>Your key stays local.</b> Stored in <code>chrome.storage.local</code>, never synced or sent anywhere except Gemini.</li>
+        <li><b>Only policy text leaves the browser.</b> Fineprint sends the Terms and Privacy pages it found, not your browsing history.</li>
+        <li><b>Cookie guard.</b> Clicks “necessary only” or “reject all” on common consent banners.</li>
+        <li><b>Global Privacy Control.</b> Sends the <code>Sec-GPC: 1</code> signal to sites you visit.</li>
+        <li><b>Tracking-parameter stripping.</b> Optionally removes <code>utm_*</code>, <code>gclid</code>, <code>fbclid</code>, and similar tracking parameters.</li>
+        <li><b>Open source.</b> Every line is on GitHub for you to check.</li>
+      </ul>
+    </section>
+
+    <section id="install" class="section wrap">
+      <h2>Install in two minutes</h2>
+      <p class="lede">Fineprint isn’t on the Chrome Web Store yet, so you load it yourself.</p>
+      <ol class="install">
+        <li><a href="https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip">Download <code>fineprint.zip</code></a> and unzip it.</li>
+        <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top right).</li>
+        <li>Click <b>Load unpacked</b> and pick the unzipped <code>fineprint</code> folder.</li>
+        <li>Get a free API key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a>, then paste it into Fineprint → <b>Settings</b>.</li>
+      </ol>
+      <p class="note">Prefer to build from source? <code>git clone</code> the repo, run <code>npm install &amp;&amp; npm run build</code>, and load <code>dist/</code>.</p>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <span>Fineprint · <a href="https://github.com/neelsatyavolu/fineprint/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/neelsatyavolu/fineprint">GitHub</a></span>
+    <span class="muted">AI summaries can be wrong and are not legal advice.</span>
+  </footer>
+</body>
+</html>

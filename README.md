@@ -5,7 +5,17 @@ Privacy Policy with Gemini and flags what matters in three tiers
 (safe / caution / concern), graded A–F. UI implemented from the Fineprint
 design-system project (`ui_kits/extension`).
 
-## Install & run
+**Website:** https://fineprint-blond.vercel.app ·
+**Download:** [fineprint.zip](https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip) ·
+**License:** [MIT](LICENSE)
+
+## Install from a release
+
+1. Download [`fineprint.zip`](https://github.com/neelsatyavolu/fineprint/releases/latest/download/fineprint.zip) and unzip it.
+2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick the unzipped `fineprint/` folder.
+3. Add your Gemini API key in Fineprint → **Settings** (free from [Google AI Studio](https://aistudio.google.com/apikey)).
+
+## Build from source
 
 ```bash
 npm install
@@ -52,3 +62,8 @@ Screenshots land in `screenshots/`.
 - `src/lib/` — extraction, HTML→text, AI client, report builder, settings
 - `src/background.js` / `src/consent.js` — service worker & consent content script
 - `src/styles/` — DS tokens (colors, type, spacing, effects)
+- `site/` — static landing page, deployed on Vercel (project root: `site`)
+
+## License
+
+[MIT](LICENSE). Found a security issue? See [SECURITY.md](SECURITY.md).

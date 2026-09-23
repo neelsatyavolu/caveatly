@@ -7,3 +7,5 @@ screenshots/
 .agmux/
 .grok/
 .claude/
+.vercel/
+.env*

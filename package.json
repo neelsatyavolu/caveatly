@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Fineprint — Chrome extension that reads the fine print for you.",
+  "license": "MIT",
+  "repository": "github:neelsatyavolu/fineprint",
+  "homepage": "https://fineprint-blond.vercel.app",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
