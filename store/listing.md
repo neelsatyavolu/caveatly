@@ -32,7 +32,7 @@ PRIVACY TOOLS BUILT IN
 • Tracking-parameter stripping: removes utm_*, gclid, fbclid and similar tags from links you open (optional).
 
 PRIVATE BY DESIGN
-• No Caveatly server, no account, no analytics.
+• No account, no tracking. Just one anonymous daily usage ping (a random install ID and version numbers), which you can turn off in Settings.
 • Bring your own free Gemini API key from Google AI Studio. It's stored only on your device.
 • Only the legal pages you scan are sent to Gemini — never your browsing history.
 • Open source (MIT): https://github.com/neelsatyavolu/caveatly
@@ -55,17 +55,20 @@ Caveatly helps people understand a website's Terms of Service and Privacy Policy
 
 **Permission justifications:**
 
-- `storage` — Saves the user's settings, their Gemini API key (on this device only), and scan reports so a site doesn't need to be re-scanned.
+- `storage` — Saves the user's settings, their Gemini API key (on this device only), scan reports so a site doesn't need to be re-scanned, and a random install ID for the optional anonymous usage stats.
 - `scripting` — Injects the extraction script into the active tab when the user starts a scan, to find the Terms of Service and Privacy Policy links or read the legal document the user is viewing.
 - `declarativeNetRequest` — Adds the Global Privacy Control header (`Sec-GPC: 1`) to requests and, if the user turns it on, removes tracking parameters (utm_*, gclid, fbclid) from URLs. No request contents are read.
 - `favicon` — Shows the scanned site's icon in the popup and report, using Chrome's local favicon cache.
 - Host permissions (`http://*/*`, `https://*/*`) — Terms and privacy links can appear on any website, so the extension must be able to (1) fetch the linked legal documents from the site being scanned, (2) run its content scripts to detect legal pages and offer a scan, and (3) handle cookie-consent banners and send Global Privacy Control wherever the user browses. Page contents are never collected or sent anywhere except the legal documents the user chooses to scan.
 
-**Remote code:** No, I am not using remote code. All JavaScript is bundled in the package; the only network call is to the Gemini API, which returns JSON data.
+**Remote code:** No, I am not using remote code. All JavaScript is bundled in the package. The extension's own network calls are to the Gemini API, which returns JSON data, and a once-a-day anonymous usage ping to `analytics.n3el.dev`, which returns no content.
 
 **Data usage — collected:**
 - ☑ Website content — the text of the Terms of Service / Privacy Policy being scanned, and the site's domain, sent to Google's Gemini API with the user's own key to generate the summary.
-- Everything else unchecked (no personally identifiable info, health, financial, authentication info, personal communications, location, web history, or user activity).
+- ☑ Location — the anonymous usage ping (v0.1.2+, on by default, opt-out in Settings) is stored with the country it came from, derived by Cloudflare from the request IP. The IP itself is not stored. Country-level data arguably isn't "location", but ticking this is the conservative, accurate choice.
+- Everything else unchecked: no personally identifiable info, health, financial, authentication info, personal communications, web history, or user activity.
+
+Note: the usage ping contains a random install ID (UUID generated on the device), the extension version, Chrome major version, CPU arch and install channel. It isn't tied to a person or account, so it is not treated as personally identifiable info. If a reviewer disagrees, tick "Personally identifiable information" rather than drop the ping.
 
 Note: the user's Gemini API key is stored locally and sent only to Google as the API credential; it is not collected by the developer.
 

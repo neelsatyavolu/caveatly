@@ -36,7 +36,12 @@ const context = await chromium.launchPersistentContext(userDataDir, {
   channel: 'chromium',
   headless: true,
   viewport: { width: 1280, height: 800 },
-  args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`],
+  args: [
+    `--disable-extensions-except=${DIST}`,
+    `--load-extension=${DIST}`,
+    // Keep test runs out of the real usage stats (heartbeat is unit-tested in tests/heartbeat.mjs).
+    '--host-resolver-rules=MAP analytics.n3el.dev ~NOTFOUND',
+  ],
 });
 
 try {
@@ -171,6 +176,16 @@ try {
   await popup.getByText(/API key/).first().waitFor({ timeout: 5000 });
   check(true, 'settings screen renders (API key + toggles)');
   await popup.locator('#root > div').screenshot({ path: path.join(SHOTS, 'settings.png') });
+
+  // usage-stats opt-out: on by default, install ID created, turning it off persists
+  const statsSwitch = popup.getByRole('switch', { name: /Share anonymous usage stats/ });
+  check(await statsSwitch.getAttribute('aria-checked') === 'true', 'usage stats toggle is on by default');
+  const { installId } = await sw.evaluate(() => chrome.storage.local.get('installId'));
+  check(/^[0-9a-f-]{36}$/.test(installId || ''), 'install ID generated in chrome.storage.local');
+  await statsSwitch.click();
+  await popup.waitForTimeout(300);
+  const { usageStats } = await sw.evaluate(() => chrome.storage.sync.get('usageStats'));
+  check(usageStats === false && await statsSwitch.getAttribute('aria-checked') === 'false', 'usage stats opt-out persists');
   await popup.close();
 } finally {
   await context.close();

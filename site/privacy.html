@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/styles.css">
+  <script defer src="https://analytics.n3el.dev/p.js"></script>
 </head>
 <body>
   <header class="nav wrap">
@@ -27,7 +28,7 @@
   <main class="prose wrap">
     <p class="eyebrow">Last updated September 23, 2026</p>
     <h1>Privacy Policy</h1>
-    <p class="lede">Caveatly is a Chrome extension that reads a website’s Terms of Service and Privacy Policy with AI and flags what matters. It has no server, no account, and no analytics. This page explains exactly what it handles.</p>
+    <p class="lede">Caveatly is a Chrome extension that reads a website’s Terms of Service and Privacy Policy with AI and flags what matters. It has no account, and apart from an anonymous daily usage ping you can turn off, it sends nothing to its developer. This page explains exactly what it handles.</p>
 
     <h2>What Caveatly sends, and to whom</h2>
     <p>When you scan a site, Caveatly sends two things to <b>Google’s Gemini API</b> (<code>generativelanguage.googleapis.com</code>), using the API key you entered:</p>
@@ -35,13 +36,27 @@
       <li>the text of the site’s Terms of Service and Privacy Policy pages, and</li>
       <li>the site’s domain name (for example, <code>example.com</code>), so the summary can name it.</li>
     </ul>
-    <p>That is the only data that leaves your browser. Caveatly never sends your browsing history, the contents of other pages, form entries, passwords, or anything that identifies you. Google handles this data under the <a href="https://ai.google.dev/gemini-api/terms">Gemini API Terms of Service</a>. If you use Gemini’s free tier, those terms allow Google to use submitted content to improve its products; a paid Gemini key changes that.</p>
+    <p>Apart from the anonymous usage ping described below, that is the only data that leaves your browser. Caveatly never sends your browsing history, the contents of other pages, form entries, passwords, or anything that identifies you. Google handles this data under the <a href="https://ai.google.dev/gemini-api/terms">Gemini API Terms of Service</a>. If you use Gemini’s free tier, those terms allow Google to use submitted content to improve its products; a paid Gemini key changes that.</p>
     <p>To find and read the legal pages, Caveatly also loads them directly from the website you are on, just as your browser would if you clicked the links.</p>
+
+    <h2>Anonymous usage stats</h2>
+    <p>Unless you turn it off, Caveatly sends one small ping a day to <code>analytics.n3el.dev</code>, a stats service run by Caveatly’s developer, so he can count active installs. The ping contains:</p>
+    <ul>
+      <li>a random install ID, created on your device and not linked to you or your Google account,</li>
+      <li>the Caveatly version, your Chrome major version and CPU type (for example, <code>arm64</code>), and</li>
+      <li>whether Caveatly came from the Chrome Web Store or was loaded unpacked.</li>
+    </ul>
+    <p>It never includes the sites you visit or scan, page contents, your API key, or anything that identifies you. No cookies are used. The service does not store your IP address; it keeps only the country your request came from. When you uninstall Caveatly, Chrome opens a page on <code>analytics.n3el.dev</code> that counts the uninstall and then redirects to this website.</p>
+    <p>To opt out, open Caveatly → <b>Settings</b> and turn off <b>Share anonymous usage stats</b>. Caveatly then sends no ping and skips the uninstall page.</p>
+
+    <h2>This website</h2>
+    <p>This website counts visits with a small cookieless script from <code>analytics.n3el.dev</code>. It records the page address (without query strings), the referring site, clicks on download links, your country, and your browser, OS and device type. It sets no cookies, does not store your IP address, and does not track you across sites or days.</p>
 
     <h2>What Caveatly stores on your device</h2>
     <ul>
       <li><b>Your Gemini API key</b>, in <code>chrome.storage.local</code>. It stays on this device, is never synced, and is only ever sent to Google’s Gemini API.</li>
       <li><b>Scan reports</b> for the sites you scanned, in <code>chrome.storage.local</code>, so you don’t have to re-scan. These include the site’s domain and the flagged clauses.</li>
+      <li><b>A random install ID</b> and the date of the last usage ping, in <code>chrome.storage.local</code>, for the anonymous usage stats.</li>
       <li><b>Prompt choices</b>, such as dismissing the on-page scan prompt for a domain, in <code>chrome.storage.local</code>.</li>
       <li><b>Your settings</b> (the on/off toggles and scan mode), in <code>chrome.storage.sync</code>. If you use Chrome sync, Google syncs these toggles between your devices. Your API key is never included.</li>
     </ul>
@@ -54,7 +69,7 @@
     <ul>
       <li>It does not sell or share your data with anyone.</li>
       <li>It does not use your data for advertising, credit decisions, or anything unrelated to explaining the legal pages you scan.</li>
-      <li>It has no analytics, tracking, or crash reporting, and it runs no remote code.</li>
+      <li>It has no tracking, advertising, or crash reporting, and it runs no remote code. Its only analytics is the anonymous, opt-out usage ping described above.</li>
     </ul>
 
     <h2>Why it needs access to all websites</h2>

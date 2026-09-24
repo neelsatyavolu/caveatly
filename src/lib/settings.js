@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS = {
   // 'ask'  — toast when terms/privacy are found on an unscanned domain (default)
   // 'auto' — scan immediately when terms/privacy are found on an unscanned domain
   pageScan: 'ask',
+  usageStats: true,  // daily anonymous heartbeat to analytics.n3el.dev (see lib/heartbeat.js)
 };
 
 // Gemini via the OpenAI-compatible chat-completions protocol. maxInputChars is

@@ -44,10 +44,22 @@ npm run build        # bundles into dist/
 - **Send Global Privacy Control** — declarativeNetRequest rule adds `Sec-GPC: 1`.
 - **Strip tracking parameters** — DNR rule removes `utm_*`, `gclid`, `fbclid`, etc.
 
+## Privacy & analytics
+
+Scanned policy text goes only to Gemini, with your key. Separately, `lib/heartbeat.js`
+sends one anonymous ping per UTC day to `analytics.n3el.dev` (run by the developer):
+a random install ID, the extension version, Chrome major version, CPU arch, and
+whether it's a Web Store or unpacked install. No URLs, page content, keys or
+personal data, and no cookies; only the country is kept, not the IP address. Uninstalls are counted
+via `chrome.runtime.setUninstallURL`. Turn it off with **Settings → Share anonymous
+usage stats**: nothing is sent and the uninstall URL is cleared. The website counts
+page views with a cookieless script. Full details: https://caveatly.n3el.dev/privacy
+
 ## Tests
 
 ```bash
 npm run test:e2e     # loads the extension into Chromium, scans real sites
+npm run test:heartbeat  # unit test: daily usage ping + opt-out (no network)
 ```
 
 Visits github.com, stripe.com, and en.wikipedia.org; verifies extraction finds real

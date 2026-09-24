@@ -10,7 +10,8 @@ repository. You'll get a response within a few days.
 
 - Your Gemini API key is stored in `chrome.storage.local` and is only sent to
   `generativelanguage.googleapis.com`.
-- The only data sent off-device is the text of the Terms/Privacy documents
-  being scanned. There is no Caveatly server.
+- Scanned Terms/Privacy text is sent only to Gemini. The only other request is
+  an anonymous daily usage ping to `analytics.n3el.dev` (random install ID,
+  versions, CPU arch), which can be turned off in Settings.
 
 Never commit API keys. Local secrets belong in `.env`, which is gitignored.

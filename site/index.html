@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/styles.css">
+  <script defer src="https://analytics.n3el.dev/p.js"></script>
 </head>
 <body>
   <header class="nav wrap">
@@ -108,11 +109,12 @@
     <section id="privacy" class="section wrap privacy">
       <div>
         <h2>Private by design</h2>
-        <p class="lede">There is no Caveatly server. The extension talks to one service — Google Gemini — using a key you control.</p>
+        <p class="lede">No account, no tracking. The extension sends policy text to Google Gemini using a key you control, plus one anonymous daily usage ping you can switch off.</p>
       </div>
       <ul class="checks">
         <li><b>Your key stays local.</b> Stored in <code>chrome.storage.local</code>, never synced or sent anywhere except Gemini.</li>
-        <li><b>Only policy text leaves the browser.</b> Caveatly sends the Terms and Privacy pages it found, not your browsing history.</li>
+        <li><b>Only policy text goes to Gemini.</b> Caveatly sends the Terms and Privacy pages it found, not your browsing history.</li>
+        <li><b>Anonymous usage stats.</b> A daily ping with a random install ID and version numbers, nothing about you. Turn it off in Settings.</li>
         <li><b>Cookie guard.</b> Clicks “necessary only” or “reject all” on common consent banners.</li>
         <li><b>Global Privacy Control.</b> Sends the <code>Sec-GPC: 1</code> signal to sites you visit.</li>
         <li><b>Tracking-parameter stripping.</b> Optionally removes <code>utm_*</code>, <code>gclid</code>, <code>fbclid</code>, and similar tracking parameters.</li>

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Caveatly",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Reads the fine print for you — scans terms of service & privacy policies with AI and flags what matters.",
   "permissions": ["storage", "scripting", "declarativeNetRequest", "favicon"],
   "host_permissions": ["http://*/*", "https://*/*"],

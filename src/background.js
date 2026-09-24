@@ -6,6 +6,7 @@ import { pdfToText } from './lib/pdf-to-text.js';
 import { analyzeLegalDocs, GroqError } from './lib/groq.js';
 import { buildReport } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
+import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -307,15 +308,31 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
   if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
   applyNetworkRules();
+  startUsageStats();
 });
+
+// No alarms permission: the daily heartbeat piggybacks on service-worker
+// wake-ups (install, browser start, any message) and sends once per UTC day.
+async function startUsageStats() {
+  const { usageStats } = await getSettings();
+  await syncUninstallUrl(usageStats);
+  maybeSendHeartbeat();
+}
+
+chrome.runtime.onStartup.addListener(startUsageStats);
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && (changes.gpc || changes.minimize)) applyNetworkRules();
+  if (area === 'sync' && changes.usageStats) {
+    syncUninstallUrl(changes.usageStats.newValue);
+    if (changes.usageStats.newValue) maybeSendHeartbeat();
+  }
 });
 
 chrome.tabs.onRemoved.addListener(tabId => consentByTab.delete(tabId));
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  maybeSendHeartbeat();
   if (msg?.type === 'scan') {
     runScan(msg.tabId).then(sendResponse).catch(e => sendResponse({ ok: false, error: 'unexpected', message: e.message }));
     return true; // async response

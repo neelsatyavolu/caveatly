@@ -1,6 +1,6 @@
 {
   "name": "caveatly",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Caveatly — Chrome extension that reads the fine print for you.",
   "license": "MIT",
@@ -10,7 +10,8 @@
   "scripts": {
     "build": "node build.mjs",
     "test:popup-shell": "node tests/popup-shell.mjs",
-    "test:e2e": "node tests/e2e.mjs"
+    "test:e2e": "node tests/e2e.mjs",
+    "test:heartbeat": "node tests/heartbeat.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.469.0",

@@ -101,7 +101,10 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
           </div>
         </div>
       </Section>
-      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Caveatly · v0.1.1 · settings sync locally</div>
+      <Section title="Usage stats">
+        <Toggle checked={settings.usageStats} onChange={v => onSettingChange('usageStats', v)} label="Share anonymous usage stats" description="Sends a daily ping with a random install ID, extension version and Chrome version. No personal data." />
+      </Section>
+      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Caveatly · v0.1.2 · settings sync locally</div>
     </div>
   );
 }
