@@ -4,9 +4,10 @@ import { extractLegalSources } from './lib/extract-page.js';
 import { htmlToText } from './lib/html-to-text.js';
 import { pdfToText } from './lib/pdf-to-text.js';
 import { analyzeLegalDocs, GroqError } from './lib/groq.js';
-import { buildReport } from './lib/report.js';
+import { buildReport, pageDocLabel } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
+import { fetchCredentials, relatedOrigins } from './lib/hosts.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -20,18 +21,26 @@ function isUsableDocText(text) {
   return true;
 }
 
-async function fetchDocText(url) {
+async function fetchDocText(url, pageOrigin) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    // credentials:include — sites like Amazon bot-block cookie-less SW fetches (503).
-    const res = await fetch(url, { signal: controller.signal, redirect: 'follow', credentials: 'include' });
+    // Cookies only for the site being scanned. Same-site fetches still send
+    // cookies (Amazon bot-blocks a cookie-less service-worker fetch); a legal
+    // link pointing at some other host must not carry that host's cookies.
+    const res = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+      credentials: fetchCredentials(pageOrigin, url),
+    });
     if (!res.ok) return null;
     const type = res.headers.get('content-type') || '';
     if (/pdf/i.test(type) || /\.pdf(\?|#|$)/i.test(url)) {
-      return pdfToText(await res.arrayBuffer());
+      const text = await pdfToText(await res.arrayBuffer());
+      return isUsableDocText(text) ? text : null;
     }
-    if (type && !/html|text|xml/.test(type)) return null;
+    // Content-Type is case-insensitive; the tab fallback already treated it that way.
+    if (type && !/html|text|xml/i.test(type)) return null;
     const text = htmlToText(await res.text());
     return isUsableDocText(text) ? text : null;
   } catch {
@@ -43,17 +52,18 @@ async function fetchDocText(url) {
 
 // When the service worker is bot-blocked, fetch from the open tab so the request
 // uses the page's cookie jar + network context (fixes Amazon help pages).
-async function fetchDocTextViaTab(tabId, url) {
+async function fetchDocTextViaTab(tabId, url, pageOrigin) {
   if (tabId == null) return null;
   try {
+    const credentials = fetchCredentials(pageOrigin, url);
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId },
-      args: [url, FETCH_TIMEOUT_MS],
-      func: async (docUrl, timeoutMs) => {
+      args: [url, FETCH_TIMEOUT_MS, credentials],
+      func: async (docUrl, timeoutMs, credentialsMode) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
-          const res = await fetch(docUrl, { signal: controller.signal, redirect: 'follow', credentials: 'include' });
+          const res = await fetch(docUrl, { signal: controller.signal, redirect: 'follow', credentials: credentialsMode });
           if (!res.ok) return null;
           const type = res.headers.get('content-type') || '';
           if (/pdf/i.test(type) || /\.pdf(\?|#|$)/i.test(docUrl)) return null;
@@ -74,8 +84,8 @@ async function fetchDocTextViaTab(tabId, url) {
   }
 }
 
-async function fetchDocTextBest(url, tabId) {
-  return (await fetchDocText(url)) || (await fetchDocTextViaTab(tabId, url));
+async function fetchDocTextBest(url, tabId, pageOrigin) {
+  return (await fetchDocText(url, pageOrigin)) || (await fetchDocTextViaTab(tabId, url, pageOrigin));
 }
 
 function docLabel(kind, linkText) {
@@ -84,99 +94,104 @@ function docLabel(kind, linkText) {
   return linkText || 'Legal';
 }
 
-// Subdomains (tools.usps.com, store.github.com) often omit footer legal links.
-// Walk the origin, then apex / www.apex so we can still find the site's policies.
-// Naive eTLD+1 (last two labels) — good enough for .com/.org/.net; multi-part
-// public suffixes (co.uk) may over-strip, which only costs an extra failed fetch.
-function relatedOrigins(origin) {
-  let u;
-  try { u = new URL(origin); } catch { return [origin]; }
-  const host = u.hostname.replace(/^www\./i, '');
-  const parts = host.split('.').filter(Boolean);
-  const out = [];
-  const add = (h) => {
-    const o = `${u.protocol}//${h}`;
-    if (!out.includes(o)) out.push(o);
-  };
-  add(u.hostname);
-  if (parts.length >= 2) {
-    const apex = parts.slice(-2).join('.');
-    add(apex);
-    add(`www.${apex}`);
-  }
-  // Also try peeling one label at a time (a.b.example.com → b.example.com → …)
-  for (let i = 1; i < parts.length - 1; i++) {
-    add(parts.slice(i).join('.'));
-    add(`www.${parts.slice(i).join('.')}`);
-  }
-  return out;
+function decodeAttr(value) {
+  return String(value)
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;|&#0*39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>');
 }
 
 // Deep pages sometimes lack footer links — fall back to scanning homepage HTML
 // (this origin, then related apex/www origins) for Terms/Privacy links.
-async function homepageCandidates(origin, excludeUrl) {
+// Keeps a few alternates per kind so a short or blocked first link isn't the end.
+async function homepageCandidates(origin, excludeUrl, pageOrigin) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(`${origin}/`, { credentials: 'include', redirect: 'follow' });
+    const res = await fetch(`${origin}/`, {
+      credentials: fetchCredentials(pageOrigin || origin, `${origin}/`),
+      redirect: 'follow',
+      signal: controller.signal,
+    });
     if (!res.ok) return [];
     const html = await res.text();
     const LEGAL = /(terms|conditions|privacy|polic(?:y|ies)|legal|eula|agreement)/i;
-    const byKind = new Map();
+    const lists = { terms: [], privacy: [], legal: [] };
     const anchor = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]{0,150}?)<\/a>/gi;
     let m;
     while ((m = anchor.exec(html))) {
       const text = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!LEGAL.test(text) && !LEGAL.test(m[1])) continue;
+      const href = decodeAttr(m[1]);
+      if (!LEGAL.test(text) && !LEGAL.test(href)) continue;
       let abs;
-      try { abs = new URL(m[1], origin).href.split('#')[0]; } catch { continue; }
+      try { abs = new URL(href, origin).href.split('#')[0]; } catch { continue; }
       if (!/^https?:/.test(abs) || abs === excludeUrl) continue;
       const hay = text + ' ' + abs;
       const kind = /privacy|data.?protection/i.test(hay) ? 'privacy'
         : /terms|conditions|eula|agreement/i.test(hay) ? 'terms' : 'legal';
-      if (!byKind.has(kind)) byKind.set(kind, { url: abs, text, kind });
+      if (lists[kind].length < 4) lists[kind].push({ url: abs, text, kind });
     }
     // Prefer real terms/privacy over generic "legal" (FOIA, Law Department, …).
     const picked = [];
-    for (const kind of ['terms', 'privacy']) {
-      if (byKind.has(kind)) picked.push(byKind.get(kind));
+    if (lists.terms[0]) picked.push(lists.terms[0]);
+    if (lists.privacy[0]) picked.push(lists.privacy[0]);
+    for (const c of [...lists.terms.slice(1), ...lists.privacy.slice(1), ...lists.legal]) {
+      if (picked.length >= 6) break;
+      picked.push(c);
     }
-    if (picked.length < 2 && byKind.has('legal')) picked.push(byKind.get('legal'));
-    return picked.slice(0, 2);
+    return picked;
   } catch {
     return [];
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 async function fallbackCandidates(origin, excludeUrl) {
   for (const o of relatedOrigins(origin)) {
-    const cands = await homepageCandidates(o, excludeUrl);
+    const cands = await homepageCandidates(o, excludeUrl, origin);
     if (cands.some(c => c.kind === 'terms' || c.kind === 'privacy')) return cands;
   }
   return [];
 }
 
-async function fetchCandidateDocs(candidates, docs, tabId) {
-  const fetched = await Promise.all(candidates.map(async c => ({
-    c,
-    text: await fetchDocTextBest(c.url, tabId),
-  })));
-  for (const { c, text } of fetched) {
-    if (text) docs.push({ label: docLabel(c.kind, c.text), url: c.url, text });
+// Try candidates in order until two usable docs are in hand. The first pair is
+// fetched together; later links are only used when an earlier one is unusable.
+async function fetchCandidateDocs(candidates, docs, tabId, pageOrigin) {
+  const seen = new Set(docs.map(d => d.url));
+  const queue = [];
+  for (const c of candidates) {
+    if (!c?.url || seen.has(c.url)) continue;
+    seen.add(c.url);
+    queue.push(c);
+  }
+  let index = 0;
+  while (docs.length < 2 && index < queue.length) {
+    const batch = queue.slice(index, index + Math.min(2, 2 - docs.length));
+    index += batch.length;
+    const fetched = await Promise.all(batch.map(async c => ({
+      c,
+      text: await fetchDocTextBest(c.url, tabId, pageOrigin),
+    })));
+    for (const { c, text } of fetched) {
+      if (text && docs.length < 2) docs.push({ label: docLabel(c.kind, c.text), url: c.url, text });
+    }
   }
 }
 
 async function gatherDocs(extracted, tabId) {
   const docs = [];
   if (extracted.looksLegal && extracted.pageText && isUsableDocText(extracted.pageText)) {
-    const label = /privacy/i.test(extracted.title + extracted.url) ? 'Privacy Policy' : 'Terms of Service';
-    docs.push({ label, url: extracted.url, text: extracted.pageText });
+    docs.push({ label: pageDocLabel(extracted.title, extracted.url), url: extracted.url, text: extracted.pageText });
   }
   const pageUrl = extracted.url.split('#')[0];
   const candidates = (extracted.candidates || [])
-    .filter(c => c.url.split('#')[0] !== pageUrl)
-    .slice(0, 2 - docs.length);
-  await fetchCandidateDocs(candidates, docs, tabId);
+    .filter(c => c.url.split('#')[0] !== pageUrl);
+  await fetchCandidateDocs(candidates, docs, tabId, extracted.origin);
   if (!docs.length) {
-    await fetchCandidateDocs(await fallbackCandidates(extracted.origin, pageUrl), docs, tabId);
+    await fetchCandidateDocs(await fallbackCandidates(extracted.origin, pageUrl), docs, tabId, extracted.origin);
   }
   return docs;
 }
@@ -229,6 +244,41 @@ function updateBadge(tabId, report) {
   const n = report.stats.concern;
   chrome.action.setBadgeBackgroundColor({ tabId, color: '#c23c2d' });
   chrome.action.setBadgeText({ tabId, text: n > 0 ? String(n) : '' });
+}
+
+// The badge used to stick on the tab after navigation, and a cached report
+// never showed a badge until that tab was scanned again.
+async function syncBadgeForTab(tabId, url) {
+  try {
+    if (tabId == null) return;
+    if (!url || !/^https?:/i.test(url)) {
+      await chrome.action.setBadgeText({ tabId, text: '' });
+      return;
+    }
+    const key = `report:${new URL(url).origin}`;
+    const session = await chrome.storage.session.get(key);
+    let report = session[key];
+    if (!report) {
+      const local = await chrome.storage.local.get(key);
+      report = local[key] || null;
+    }
+    if (!report?.stats) {
+      await chrome.action.setBadgeText({ tabId, text: '' });
+      return;
+    }
+    updateBadge(tabId, report);
+  } catch {
+    // Tab closed or URL unreadable.
+  }
+}
+
+async function syncAllBadges() {
+  try {
+    const tabs = await chrome.tabs.query({});
+    await Promise.all(tabs.map(tab => syncBadgeForTab(tab.id, tab.url)));
+  } catch {
+    // best effort
+  }
 }
 
 // After an on-page scan, open the report UI so the user doesn't have to hunt for
@@ -309,6 +359,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
   applyNetworkRules();
   startUsageStats();
+  syncAllBadges();
 });
 
 // No alarms permission: the daily heartbeat piggybacks on service-worker
@@ -319,7 +370,10 @@ async function startUsageStats() {
   maybeSendHeartbeat();
 }
 
-chrome.runtime.onStartup.addListener(startUsageStats);
+chrome.runtime.onStartup.addListener(() => {
+  startUsageStats();
+  syncAllBadges();
+});
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && (changes.gpc || changes.minimize)) applyNetworkRules();
@@ -330,6 +384,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 chrome.tabs.onRemoved.addListener(tabId => consentByTab.delete(tabId));
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url || changeInfo.status === 'complete') syncBadgeForTab(tabId, tab.url);
+});
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   maybeSendHeartbeat();

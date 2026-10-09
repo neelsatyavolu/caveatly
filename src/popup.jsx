@@ -40,20 +40,26 @@ function App() {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [consentAction, setConsentAction] = React.useState(null);
 
+  const scanningRef = React.useRef(false);
   const scan = React.useCallback(async targetTab => {
     const t = targetTab || tab;
-    if (!t) return;
+    if (!t || scanningRef.current) return;
+    scanningRef.current = true;
     setStatus('scanning');
     setErrorMessage('');
-    const resp = await chrome.runtime.sendMessage({ type: 'scan', tabId: t.id }).catch(e => ({ ok: false, error: 'unexpected', message: e.message }));
-    if (resp?.ok) {
-      setReport(resp.report);
-      setStatus('ready');
-    } else if (resp?.error === 'no-key') {
-      setStatus('needs-key');
-    } else {
-      setErrorMessage(resp?.message || 'Something went wrong.');
-      setStatus('error');
+    try {
+      const resp = await chrome.runtime.sendMessage({ type: 'scan', tabId: t.id }).catch(e => ({ ok: false, error: 'unexpected', message: e.message }));
+      if (resp?.ok) {
+        setReport(resp.report);
+        setStatus('ready');
+      } else if (resp?.error === 'no-key') {
+        setStatus('needs-key');
+      } else {
+        setErrorMessage(resp?.message || 'Something went wrong.');
+        setStatus('error');
+      }
+    } finally {
+      scanningRef.current = false;
     }
   }, [tab]);
 
@@ -121,12 +127,13 @@ function App() {
   return (
     <PopupHome
       report={status === 'ready' ? report : null}
-      status={status === 'loading' ? 'scanning' : status}
+      status={status}
       errorMessage={errorMessage}
       site={site}
       siteUrl={tab?.url}
       cookieFooter={cookieFooterFor(settings, consentAction)}
       onScan={() => scan()}
+      onBackToReport={report ? () => { setErrorMessage(''); setStatus('ready'); } : null}
       onOpenReport={() => setView('report')}
       onOpenSettings={() => setView('settings')}
     />

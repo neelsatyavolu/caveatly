@@ -6,10 +6,16 @@ const ENTITIES = {
   mdash: '—', ndash: '–', hellip: '…', copy: '©', sect: '§',
 };
 
+function fromEntityCode(n) {
+  // Invalid numeric entities used to throw RangeError and discard the whole document.
+  if (!Number.isInteger(n) || n < 0 || n > 0x10FFFF || (n >= 0xD800 && n <= 0xDFFF)) return null;
+  return String.fromCodePoint(n);
+}
+
 function decodeEntities(text) {
   return text
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&#(\d+);/g, (m, n) => fromEntityCode(Number(n)) ?? m)
+    .replace(/&#x([0-9a-f]+);/gi, (m, n) => fromEntityCode(parseInt(n, 16)) ?? m)
     .replace(/&([a-z]+);/gi, (m, name) => ENTITIES[name.toLowerCase()] ?? m);
 }
 

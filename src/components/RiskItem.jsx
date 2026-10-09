@@ -10,12 +10,26 @@ export function RiskItem({ tier = 'caution', title, explanation, clauseRef, quot
   const t = TIERS[tier] || TIERS.caution;
   const canExpand = Boolean(quote) && expandable;
   const clickable = canExpand || onClick;
-  const handleClick = canExpand ? () => setOpen(o => !o) : onClick;
+  const activate = () => {
+    if (canExpand) setOpen(o => !o);
+    else if (onClick) onClick();
+  };
   return (
     <div
-      onClick={handleClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-expanded={canExpand ? open : undefined}
+      onClick={clickable ? activate : undefined}
+      onKeyDown={clickable ? (e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activate();
+        }
+      }) : undefined}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
       style={{
         display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start',
         padding: 'var(--space-4) var(--space-5)',

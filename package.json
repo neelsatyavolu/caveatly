@@ -11,7 +11,8 @@
     "build": "node build.mjs",
     "test:popup-shell": "node tests/popup-shell.mjs",
     "test:e2e": "node tests/e2e.mjs",
-    "test:heartbeat": "node tests/heartbeat.mjs"
+    "test:heartbeat": "node tests/heartbeat.mjs",
+    "test:unit": "node tests/unit.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.469.0",

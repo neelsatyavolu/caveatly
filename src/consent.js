@@ -1,6 +1,31 @@
 // Best-effort cookie-consent handler. When enabled in settings, watches for a
 // consent banner and clicks the most privacy-preserving option it can find
 // ("necessary only" / "reject all"). Reports what it did to the background.
+import { consentChoice } from './lib/consent-labels.js';
+
+export function isBannerVisible(el) {
+  if (!(el instanceof HTMLElement)) return false;
+  const style = getComputedStyle(el);
+  if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+  const rect = el.getBoundingClientRect();
+  // position:fixed banners have a null offsetParent, so size is the check.
+  return rect.width >= 8 && rect.height >= 8;
+}
+
+export function buttonsIn(root) {
+  const buttonSel = 'button, [role="button"], input[type="button"], input[type="submit"], a';
+  const out = [...root.querySelectorAll(buttonSel)];
+  // CMPs such as Usercentrics render their buttons inside an open shadow root.
+  const shadows = [];
+  if (root.shadowRoot) shadows.push(root.shadowRoot);
+  for (const child of root.children) {
+    if (child.shadowRoot) shadows.push(child.shadowRoot);
+  }
+  for (const sr of shadows) out.push(...sr.querySelectorAll(buttonSel));
+  return out;
+}
+
+if (typeof document !== 'undefined') {
 (async () => {
   const settings = await chrome.storage.sync.get({ block: true, autoReject: true });
   if (!settings.block && !settings.autoReject) return;
@@ -15,8 +40,6 @@
   // (still-present) preference-center buttons re-triggers apply-and-reload loops.
   if (/OptanonAlertBoxClosed|CookieConsent=|euconsent-v2|cookieyes-consent/.test(document.cookie)) return;
 
-  const NECESSARY = /\b(only necessary|necessary only|essential only|only essential|use necessary|necessary cookies only|strictly necessary)\b/i;
-  const REJECT = /^(reject|decline|refuse|deny)(\s+(all|optional|non.?essential))?\.?$|^(reject|decline)\s+cookies$|continue without (accepting|agreeing)/i;
   const CONTAINER_SEL = [
     '#onetrust-banner-sdk', '#CybotCookiebotDialog', '#usercentrics-root', '#truste-consent-track',
     '[id*="cookie" i]', '[class*="cookie" i]', '[id*="consent" i]', '[class*="consent" i]',
@@ -24,10 +47,6 @@
   ].join(',');
 
   let done = false;
-
-  function buttonsIn(root) {
-    return root.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"], a');
-  }
 
   function labelOf(el) {
     return ((el.textContent || el.value || '') + ' ' + (el.getAttribute('aria-label') || ''))
@@ -37,13 +56,15 @@
   function tryHandle() {
     if (done) return false;
     for (const container of document.querySelectorAll(CONTAINER_SEL)) {
-      if (!(container instanceof HTMLElement) || !container.offsetParent) continue;
+      const shadowButtons = container.shadowRoot ? buttonsIn(container).some(btn => btn.getClientRects().length > 0) : false;
+      if (!isBannerVisible(container) && !shadowButtons) continue;
       let fallback = null;
       for (const btn of buttonsIn(container)) {
-        const label = labelOf(btn);
-        if (!label || label.length > 60) continue;
-        if (settings.block && NECESSARY.test(label)) return click(btn, 'necessary-only');
-        if (settings.autoReject && REJECT.test(label)) fallback = fallback || btn;
+        if (!btn.getClientRects().length) continue;
+        const choice = consentChoice(labelOf(btn));
+        if (!choice) continue;
+        if (settings.block && choice === 'necessary-only') return click(btn, 'necessary-only');
+        if (settings.autoReject && choice === 'rejected') fallback = fallback || btn;
       }
       if (fallback) return click(fallback, 'rejected');
     }
@@ -66,3 +87,4 @@
     if (tryHandle() || attempts >= 16) clearInterval(timer);
   }, 500);
 })();
+}

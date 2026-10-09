@@ -13,6 +13,22 @@ const HEADLINES = {
 // Concerns drive the letter; cautions only nudge within a band. Routine
 // industry language (arbitration, change-of-terms, cookies) should not pin
 // every mainstream site at C — 0–1 real concerns is A/B territory.
+export function plural(n, singular, pluralForm = `${singular}s`) {
+  return `${Number(n) === 1 ? singular : pluralForm}`;
+}
+
+export function countPhrase(n, singular, pluralForm = `${singular}s`) {
+  return `${n} ${plural(n, singular, pluralForm)}`;
+}
+
+/** Label for the page the user is already reading, when it looks like a legal doc. */
+export function pageDocLabel(title, url) {
+  const hay = `${title || ''} ${url || ''}`;
+  if (/privacy|data.?protection/i.test(hay)) return 'Privacy Policy';
+  if (/cookie/i.test(hay)) return 'Cookie Policy';
+  return 'Terms of Service';
+}
+
 export function computeGrade(stats) {
   const c = stats.concern;
   const a = stats.caution;
