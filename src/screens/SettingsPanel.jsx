@@ -35,14 +35,15 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
 
       <Section title="AI model">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <label htmlFor="gemini-api-key" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <KeyRound size={15} style={{ color: hasKey ? 'var(--safe-600)' : 'var(--text-faint)' }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>
               {hasKey ? 'Gemini API key connected' : 'Gemini API key'}
             </span>
-          </div>
+          </label>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
+              id="gemini-api-key"
               type="password"
               value={draftKey}
               onChange={e => setDraftKey(e.target.value)}
@@ -89,7 +90,7 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
             {[['off', 'Off'], ['ask', 'Ask first'], ['auto', 'Auto-scan']].map(([value, label]) => {
               const active = settings.pageScan === value;
               return (
-                <button key={value} onClick={() => onSettingChange('pageScan', value)} style={{
+                <button key={value} type="button" aria-pressed={active} onClick={() => onSettingChange('pageScan', value)} style={{
                   cursor: 'pointer', padding: '5px 12px', borderRadius: 999,
                   border: '1px solid ' + (active ? 'var(--teal-600)' : 'var(--border-default)'),
                   background: active ? 'var(--teal-600)' : 'var(--surface-card)',

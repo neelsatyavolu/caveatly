@@ -30,11 +30,14 @@ export function extractLegalSources() {
     if (hit) picked.push(hit);
   }
   for (const c of candidates) {
-    if (picked.length >= 2) break;
+    if (picked.length >= 6) break;
     if (!picked.includes(c)) picked.push(c);
   }
 
-  const looksLegal = LEGAL.test(document.title) || LEGAL.test(location.pathname);
+  // Word boundaries so "disagreement", "illegal", or "cookies" inside an
+  // unrelated title are not treated as the legal document itself.
+  const PAGE_LEGAL = /\b(terms|conditions|privacy|policies|policy|legal|eula|agreements?|data.?protection|cookies?)\b/i;
+  const looksLegal = PAGE_LEGAL.test(document.title) || PAGE_LEGAL.test(location.pathname);
   return {
     url: location.href,
     origin: location.origin,

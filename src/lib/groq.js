@@ -86,6 +86,16 @@ function budgetFromLimit(body, outputTokens) {
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const AI_TIMEOUT_MS = 90000;
+
+// Never grow the payload after a 413. A Limit figure larger than what we already
+// sent (or an unrelated "Limit N" in the body) used to increase the next try.
+export function nextCharBudget(charBudget, body, outputTokens) {
+  const fromLimit = budgetFromLimit(body, outputTokens);
+  const halved = Math.max(MIN_INPUT_CHARS, Math.floor(charBudget / 2));
+  if (fromLimit && fromLimit < charBudget) return fromLimit;
+  return halved;
+}
 
 export async function analyzeLegalDocs({ apiKey, apiBase, model, maxInputChars, maxOutputTokens, site, docs }) {
   if (!apiKey) throw new GroqError('No API key configured', 'no-key');
@@ -94,20 +104,29 @@ export async function analyzeLegalDocs({ apiKey, apiBase, model, maxInputChars, 
   const budgetKey = `${apiBase || DEFAULT_BASE}|${model || DEFAULT_MODEL}`;
   let charBudget = learnedBudgets.get(budgetKey) || maxInputChars || MAX_INPUT_CHARS;
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const res = await fetch(`${apiBase || DEFAULT_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: model || DEFAULT_MODEL,
-        temperature: 0.2,
-        max_tokens: outputTokens,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: buildUserMessage(site, docs, charBudget) },
-        ],
-      }),
-    });
+    let res;
+    try {
+      res = await fetch(`${apiBase || DEFAULT_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+        body: JSON.stringify({
+          model: model || DEFAULT_MODEL,
+          temperature: 0.2,
+          max_tokens: outputTokens,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: buildUserMessage(site, docs, charBudget) },
+          ],
+        }),
+      });
+    } catch (e) {
+      if (e?.name === 'TimeoutError' || e?.name === 'AbortError') {
+        throw new GroqError('The AI request timed out — try again', 'timeout');
+      }
+      throw new GroqError('Could not reach the AI service', 'network');
+    }
 
     if (res.ok) {
       learnedBudgets.set(budgetKey, charBudget);
@@ -119,7 +138,9 @@ export async function analyzeLegalDocs({ apiKey, apiBase, model, maxInputChars, 
 
     const body = await res.text().catch(() => '');
     if (res.status === 413 && charBudget > MIN_INPUT_CHARS) {
-      charBudget = budgetFromLimit(body, outputTokens) ?? Math.max(MIN_INPUT_CHARS, Math.floor(charBudget / 2));
+      const next = nextCharBudget(charBudget, body, outputTokens);
+      if (next >= charBudget) break;
+      charBudget = next;
       continue;
     }
     if (res.status === 429) {

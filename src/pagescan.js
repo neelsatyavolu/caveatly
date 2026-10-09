@@ -124,6 +124,10 @@
       .grade { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 9px; border: 2px solid; display: flex;
         align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: 600; font-size: 22px; background: #fff; }
       .hidden { display: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .card, .fill { animation: none; }
+        .fill { width: 40%; margin-left: 0; }
+      }
     </style>
     <div class="card" role="dialog" aria-label="Caveatly">
       <button class="close" aria-label="Dismiss">✕</button>
@@ -154,16 +158,29 @@
   const el = id => shadow.getElementById(id);
   const show = id => { for (const s of ['ask', 'busy', 'done']) el(s).classList.toggle('hidden', s !== id); };
   const markDismissed = () => chrome.storage.local.set({ [promptKey]: 'dismissed' });
-  const dismiss = () => { markDismissed(); host.remove(); };
+  const removeHost = () => {
+    document.removeEventListener('keydown', onKey);
+    host.remove();
+  };
+  // Close remembers the choice. "Not now" only hides it for this tab — sessionStorage
+  // already suppresses a repeat until the tab is closed.
+  const dismiss = () => { markDismissed(); removeHost(); };
+  const later = () => { removeHost(); };
+  const onKey = (e) => { if (e.key === 'Escape') later(); };
+  document.addEventListener('keydown', onKey);
   shadow.querySelector('.close').addEventListener('click', dismiss);
-  shadow.querySelector('.later').addEventListener('click', dismiss);
+  shadow.querySelector('.later').addEventListener('click', later);
 
+  let scanning = false;
   async function doScan() {
+    if (scanning) return;
+    scanning = true;
     show('busy');
     const resp = await chrome.runtime.sendMessage({ type: 'scanFromPage' }).catch(() => null);
+    if (!host.isConnected) return;
     if (resp?.ok) {
       // Background opens the full report UI; drop the toast so it isn't stacked under it.
-      host.remove();
+      removeHost();
       return;
     }
     el('headline').textContent = "Couldn't scan this page.";
@@ -171,7 +188,7 @@
     el('grade').style.color = el('grade').style.borderColor = '#9d978c';
     el('detail').textContent = resp?.message || 'Open the Caveatly popup to try again.';
     show('done');
-    setTimeout(() => host.remove(), 8000);
+    setTimeout(() => { if (host.isConnected) removeHost(); }, 8000);
   }
 
   shadow.querySelector('.scan').addEventListener('click', doScan);

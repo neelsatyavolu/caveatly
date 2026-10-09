@@ -32,6 +32,9 @@
   }
   #root { width: 100%; }
   .fp-progress { animation: fp-sweep 1.4s var(--ease-in-out) infinite alternate; }
+  @media (prefers-reduced-motion: reduce) {
+    .fp-progress { animation: none; width: 62%; }
+  }
   @keyframes fp-sweep {
     from { width: 12%; }
     to { width: 88%; }

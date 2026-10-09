@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Cookie, Globe, KeyRound, ScanSearch, Settings, TriangleAlert } from 'lucide-react';
+import { countPhrase } from '../lib/report.js';
 import { Button } from '../components/Button.jsx';
 import { IconButton } from '../components/IconButton.jsx';
 import { StatPill } from '../components/StatPill.jsx';
@@ -24,7 +25,7 @@ function EmptyState({ icon, headline, body, action }) {
   );
 }
 
-export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, onScan, onOpenReport, onOpenSettings }) {
+export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, onScan, onBackToReport, onOpenReport, onOpenSettings }) {
   const top = report ? report.flags.filter(f => f.tier === 'concern').slice(0, 3) : [];
   const topLabel = top.length ? 'Top concerns' : 'Top findings';
   const shown = top.length ? top : (report ? report.flags.slice(0, 3) : []);
@@ -56,8 +57,14 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
           </div>
         )}
 
+        {status === 'loading' && (
+          <div style={{ padding: '26px 0 30px', textAlign: 'center', color: 'var(--text-muted)' }} role="status">
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 19, color: 'var(--text-body)' }}>Loading…</div>
+          </div>
+        )}
+
         {status === 'scanning' && (
-          <div style={{ padding: '26px 0 30px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <div style={{ padding: '26px 0 30px', textAlign: 'center', color: 'var(--text-muted)' }} role="status" aria-live="polite">
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: 19, color: 'var(--text-body)' }}>Reading the fine print…</div>
             <div style={{ marginTop: 12, height: 6, background: 'var(--surface-sunken)', borderRadius: 999, overflow: 'hidden' }}>
               <div className="fp-progress" style={{ width: '62%', height: '100%', background: 'var(--accent)', borderRadius: 999 }}></div>
@@ -70,7 +77,12 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
             icon={<KeyRound size={26} />}
             headline="Connect your Gemini API key"
             body="Caveatly uses Gemini to read terms & policies. Add your key once in settings to start scanning."
-            action={<Button onClick={onOpenSettings} iconRight={<ArrowRight size={17} />}>Open settings</Button>}
+            action={(
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <Button onClick={onOpenSettings} iconRight={<ArrowRight size={17} />}>Open settings</Button>
+                {onBackToReport && <Button variant="ghost" onClick={onBackToReport}>Back to report</Button>}
+              </div>
+            )}
           />
         )}
 
@@ -92,7 +104,12 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
             icon={<TriangleAlert size={26} style={{ color: 'var(--concern-600)' }} />}
             headline="Couldn't finish the scan"
             body={errorMessage || 'Something went wrong.'}
-            action={<Button variant="secondary" onClick={onScan}>Try again</Button>}
+            action={(
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <Button variant="secondary" onClick={onScan}>Try again</Button>
+                {onBackToReport && <Button variant="ghost" onClick={onBackToReport}>Back to report</Button>}
+              </div>
+            )}
           />
         )}
 
@@ -103,7 +120,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
               <div>
                 <div style={{ fontFamily: 'var(--font-serif)', fontSize: 20, color: 'var(--text-strong)', lineHeight: 1.25 }}>{report.headline}</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {report.stats.concern > 0 ? `${report.stats.concern} concern${report.stats.concern === 1 ? '' : 's'} worth your attention.` : `${report.stats.clauses} clauses reviewed.`}
+                  {report.stats.concern > 0 ? `${countPhrase(report.stats.concern, 'concern')} worth your attention.` : `${countPhrase(report.stats.clauses, 'clause', 'clauses')} reviewed.`}
                 </div>
               </div>
             </div>
@@ -137,11 +154,13 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
       </div>
 
-      {/* cookie footer */}
+      {/* cookie footer — hidden while settings are still loading so the default isn't shown as fact */}
+      {status !== 'loading' && (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px', marginTop: 8, background: cookieFooter.on ? 'var(--safe-tint)' : 'var(--surface-sunken)', borderTop: `1px solid ${cookieFooter.on ? 'var(--safe-border)' : 'var(--border-subtle)'}`, color: cookieFooter.on ? 'var(--safe-600)' : 'var(--text-muted)' }}>
         <Cookie size={16} />
         <span style={{ fontSize: 12.5, fontWeight: 600 }}>{cookieFooter.text}</span>
       </div>
+      )}
     </div>
   );
 }
