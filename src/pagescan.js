@@ -151,6 +151,7 @@
       </div>
     </div>`;
 
+  const GRADE_COLORS = { A: '#3a8f5c', B: '#3a8f5c', C: '#b9791a', D: '#c23c2d', F: '#8f271a' };
   const el = id => shadow.getElementById(id);
   const show = id => { for (const s of ['ask', 'busy', 'done']) el(s).classList.toggle('hidden', s !== id); };
   const markDismissed = () => chrome.storage.local.set({ [promptKey]: 'dismissed' });
@@ -161,9 +162,19 @@
   async function doScan() {
     show('busy');
     const resp = await chrome.runtime.sendMessage({ type: 'scanFromPage' }).catch(() => null);
-    if (resp?.ok) {
-      // Background opens the full report UI; drop the toast so it isn't stacked under it.
+    if (resp?.ok && resp.opened) {
+      // Background opened the toolbar popup; drop the toast so it isn't stacked under it.
       host.remove();
+      return;
+    }
+    if (resp?.ok) {
+      // Popup couldn't open (Chrome refused) — show the grade right here instead.
+      const { grade, headline, stats } = resp.report;
+      el('grade').textContent = grade;
+      el('grade').style.color = el('grade').style.borderColor = GRADE_COLORS[grade] || GRADE_COLORS.C;
+      el('headline').textContent = headline;
+      el('detail').textContent = `${stats.concern} concern · ${stats.caution} caution. Click the Caveatly icon for the full report.`;
+      show('done');
       return;
     }
     el('headline').textContent = "Couldn't scan this page.";

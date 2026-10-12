@@ -6,8 +6,8 @@ import { SettingsPanel } from './screens/SettingsPanel.jsx';
 import { getSettings, saveSettings, getApiConfig, saveApiKey, DEFAULT_SETTINGS } from './lib/settings.js';
 
 // The popup normally targets the active tab. After an on-page scan the service
-// worker sets focusTabId so we still bind to the scanned site when Chrome opens
-// us as a detached window. Fallback: most recently used http(s) tab (e2e / dev).
+// worker sets focusTabId so we bind to the scanned site even if focus moved.
+// Fallback: most recently used http(s) tab (e2e / dev).
 async function findTargetTab() {
   const { focusTabId } = await chrome.storage.session.get('focusTabId');
   if (focusTabId != null) {
@@ -96,22 +96,6 @@ function App() {
 
   React.useEffect(() => {
     document.documentElement.dataset.view = view === 'report' ? 'report' : '';
-  }, [view]);
-
-  // Detached fallback window (openPopup often fails after an on-page scan)
-  // can restore a previous huge size. Snap it back to the report shell.
-  React.useEffect(() => {
-    if (!chrome.windows?.getCurrent) return;
-    const width = view === 'report' ? 460 : 400;
-    chrome.windows.getCurrent()
-      .then(win => {
-        if (!win || win.type !== 'popup') return;
-        const tooWide = (win.width || 0) > width + 24;
-        const tooTall = (win.height || 0) > 720;
-        if (!tooWide && !tooTall && Math.abs((win.width || 0) - width) < 24) return;
-        return chrome.windows.update(win.id, { width, height: 640 });
-      })
-      .catch(() => {});
   }, [view]);
 
   if (view === 'report' && report) return <ReportPanel report={report} siteUrl={tab?.url} onBack={() => setView('home')} />;

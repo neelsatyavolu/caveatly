@@ -231,27 +231,20 @@ function updateBadge(tabId, report) {
   chrome.action.setBadgeText({ tabId, text: n > 0 ? String(n) : '' });
 }
 
-// After an on-page scan, open the report UI so the user doesn't have to hunt for
-// the toolbar icon. Prefer the real action popup; fall back to a small window
-// (openPopup often rejects after async work or without a user gesture).
+// After an on-page scan, open the toolbar popup so the user doesn't have to hunt
+// for the icon. openPopup often rejects (window not focused, no user gesture);
+// then the on-page toast shows the grade instead. Never open a separate window.
 async function openReportUi(tabId) {
+  if (typeof chrome.action.openPopup !== 'function') return false;
   await chrome.storage.session.set({ focusTabId: tabId });
   try {
-    if (typeof chrome.action.openPopup === 'function') {
-      const tab = await chrome.tabs.get(tabId);
-      await chrome.action.openPopup({ windowId: tab.windowId });
-      return;
-    }
+    const tab = await chrome.tabs.get(tabId);
+    await chrome.action.openPopup({ windowId: tab.windowId });
+    return true;
   } catch {
-    // fall through to detached window
+    await chrome.storage.session.remove('focusTabId');
+    return false;
   }
-  await chrome.windows.create({
-    url: chrome.runtime.getURL('popup.html'),
-    type: 'popup',
-    width: 400,
-    height: 640,
-    focused: true,
-  });
 }
 
 // ————— Consent-handler results (per tab, session-scoped) —————
@@ -341,8 +334,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const tabId = sender.tab.id;
     runScan(tabId)
       .then(async result => {
-        if (result?.ok) await openReportUi(tabId).catch(() => {});
-        sendResponse(result);
+        const opened = result?.ok ? await openReportUi(tabId).catch(() => false) : false;
+        sendResponse({ ...result, opened });
       })
       .catch(e => sendResponse({ ok: false, error: 'unexpected', message: e.message }));
     return true; // async response

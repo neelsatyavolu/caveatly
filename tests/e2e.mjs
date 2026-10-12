@@ -154,15 +154,24 @@ try {
       await signupPage.waitForTimeout(500);
     }
     check(cached, 'on-page scan completed, report cached');
-    // Extension should open automatically (toolbar popup or detached window).
-    const reportUi = context.pages().find(p => /popup\.html/.test(p.url()));
-    check(Boolean(reportUi), 'report UI opened automatically');
-    if (reportUi) {
-      await reportUi.waitForSelector('#root', { timeout: 10000 }).catch(() => {});
-      await reportUi.locator('#root > div').screenshot({ path: path.join(SHOTS, 'onpage-prompt-result.png') }).catch(() => {});
-    } else {
-      await signupPage.screenshot({ path: path.join(SHOTS, 'onpage-prompt-result.png') });
+    // Result appears in the browser: toolbar popup if Chrome allowed it, else the
+    // grade in the on-page toast. Never a separate OS window.
+    // The action popup isn't exposed as a Playwright page; ask Chrome directly.
+    const toastGrade = signupPage.locator('#caveatly-prompt #grade');
+    let popupOpen = false;
+    for (let end = Date.now() + 10000; Date.now() < end; await signupPage.waitForTimeout(250)) {
+      popupOpen = (await sw.evaluate(() => chrome.runtime.getContexts({ contextTypes: ['POPUP'] }))).length > 0;
+      if (popupOpen || await toastGrade.isVisible().catch(() => false)) break;
     }
+    if (popupOpen) {
+      check(true, 'report UI opened as toolbar popup');
+    } else {
+      const grade = await toastGrade.textContent({ timeout: 1000 }).catch(() => '');
+      check(/^[A-F]$/.test(grade.trim()), 'grade shown in on-page toast');
+    }
+    await signupPage.screenshot({ path: path.join(SHOTS, 'onpage-prompt-result.png') });
+    const windows = await sw.evaluate(() => chrome.windows.getAll({ windowTypes: ['popup'] }));
+    check(windows.length === 0, 'no detached popup window opened');
   } catch (e) {
     check(false, `on-page prompt flow: ${e.message.split('\n')[0]}`);
     await signupPage.screenshot({ path: path.join(SHOTS, 'onpage-prompt-failed.png') });
