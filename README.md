@@ -5,7 +5,7 @@ Privacy Policy with Gemini and flags what matters in three tiers
 (safe / caution / concern), graded A–F. UI implemented from the Caveatly
 design-system project (`ui_kits/extension`).
 
-**Website:** https://caveatly.n3el.dev ·
+**Website:** https://caveatly.xanom.co ·
 **Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
 **License:** [MIT](LICENSE)
 
@@ -53,7 +53,7 @@ whether it's a Web Store or unpacked install. No URLs, page content, keys or
 personal data, and no cookies; only the country is kept, not the IP address. Uninstalls are counted
 via `chrome.runtime.setUninstallURL`. Turn it off with **Settings → Share anonymous
 usage stats**: nothing is sent and the uninstall URL is cleared. The website counts
-page views with a cookieless script. Full details: https://caveatly.n3el.dev/privacy
+page views with a cookieless script. Full details: https://caveatly.xanom.co/privacy
 
 ## Tests
 
