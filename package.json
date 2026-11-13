@@ -14,7 +14,8 @@
     "test:heartbeat": "node tests/heartbeat.mjs",
     "filters": "node tools/build-filters.mjs",
     "test:adblock": "node tests/adblock.mjs",
-    "test:browser-privacy": "node tests/browser-privacy.mjs"
+    "test:browser-privacy": "node tests/browser-privacy.mjs",
+    "test:link-cleaning": "node tests/link-cleaning-unit.mjs && node tests/link-cleaning.mjs"
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.3",

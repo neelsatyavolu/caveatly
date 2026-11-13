@@ -9,6 +9,7 @@ import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
 import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused } from './lib/adblock.js';
 import { initBrowserPrivacy } from './lib/browser-privacy.js';
+import { initLinkCleaning } from './lib/link-cleaning.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -253,17 +254,12 @@ async function openReportUi(tabId) {
 
 const consentByTab = new Map();
 
-// ————— Privacy network rules (GPC header + tracking-param stripping) —————
+// ————— Privacy network rules (GPC header; tracking params live in lib/link-cleaning.js) —————
 
 const GPC_RULE_ID = 1001;
-const PARAM_RULE_ID = 1002;
 // Above the per-site pause rule (lib/adblock.js), so pausing ad blocking on a
-// site keeps GPC and parameter stripping working there.
+// site keeps GPC working there.
 const PRIVACY_RULE_PRIORITY = 200000;
-const TRACKING_PARAMS = [
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'gclid', 'fbclid', 'msclkid', 'mc_eid', 'igshid', 'twclid',
-];
 
 async function applyNetworkRules() {
   const settings = await getSettings();
@@ -279,19 +275,8 @@ async function applyNetworkRules() {
       condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest'] },
     });
   }
-  if (settings.minimize) {
-    addRules.push({
-      id: PARAM_RULE_ID,
-      priority: PRIVACY_RULE_PRIORITY,
-      action: {
-        type: 'redirect',
-        redirect: { transform: { queryTransform: { removeParams: TRACKING_PARAMS } } },
-      },
-      condition: { urlFilter: '*', resourceTypes: ['main_frame'] },
-    });
-  }
   await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [GPC_RULE_ID, PARAM_RULE_ID],
+    removeRuleIds: [GPC_RULE_ID],
     addRules,
   });
 }
@@ -299,6 +284,7 @@ async function applyNetworkRules() {
 // ————— Wiring —————
 
 initBrowserPrivacy();
+initLinkCleaning();
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
@@ -323,7 +309,7 @@ async function startUsageStats() {
 chrome.runtime.onStartup.addListener(startUsageStats);
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && (changes.gpc || changes.minimize)) applyNetworkRules();
+  if (area === 'sync' && changes.gpc) applyNetworkRules();
   if (area === 'sync' && (changes.blockAds || changes.blockTrackers || changes.pausedSites)) applyAdblockSettings();
   if (area === 'sync' && changes.usageStats) {
     syncUninstallUrl(changes.usageStats.newValue);

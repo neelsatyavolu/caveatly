@@ -5,7 +5,7 @@ rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
 
 await build({
-  entryPoints: ['src/popup.jsx', 'src/background.js', 'src/consent.js', 'src/pagescan.js', 'src/adblock.js'],
+  entryPoints: ['src/popup.jsx', 'src/background.js', 'src/consent.js', 'src/pagescan.js', 'src/adblock.js', 'src/link-unwrap.js'],
   bundle: true,
   outdir: 'dist',
   format: 'iife',
