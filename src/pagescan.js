@@ -4,6 +4,8 @@
 // already scanned or dismissed. Renders in a closed world via shadow DOM.
 (async () => {
   if (window.top !== window) return;
+  // Background tab the scanner opened to read a policy (lib/doc-fetch.js RENDER_MARKER).
+  if (location.hash === '#caveatly-render') return;
 
   const { pageScan } = await chrome.storage.sync.get({ pageScan: 'ask' });
   if (pageScan === 'off') return;
@@ -25,7 +27,8 @@
   // High-signal pages only: an actual legal document, a signup/checkout URL,
   // binding-agreement language ("By continuing you agree to…"), an "I agree to
   // the terms" checkbox, or a password form mentioning terms (guards logins).
-  const LEGAL = /(terms|privacy|polic(?:y|ies)|legal|eula|agreement)/i;
+  // Includes the common European words so a Datenschutzerklärung or CGU page prompts too.
+  const LEGAL = /(terms|privacy|polic(?:y|ies)|legal|eula|agreement|datenschutz|nutzungsbedingungen|\bagb\b|confidentialit|conditions g[ée]n[ée]rales|\bcgu\b|privacidad|t[ée]rminos|condiciones)/i;
   const SIGNUP_URL = /sign.?up|register|join\b|checkout|create.?account|subscribe/i;
   const AGREE = /\b(agree|agreeing|consent) (to|with)\b|terms of (service|use)|privacy policy/i;
   const BINDING = /\bby (proceeding|continuing|clicking|tapping|signing.?(?:up|in)|creating an account|registering|subscribing|submitting|placing an order|using)\b[\s\S]{0,100}?\b(agree|accept|consent)|\b(?:i|you) (?:agree|accept|consent) to (?:our|the|these)\b|\b(?:agree|agreeing) to (?:our|the) (?:terms|privacy|conditions)/i;
