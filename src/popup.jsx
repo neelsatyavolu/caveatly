@@ -34,6 +34,8 @@ const ADBLOCK_REFRESH_MS = 2000;
 
 function App() {
   const [view, setView] = React.useState('home'); // home | report | settings
+  const [settingsFocus, setSettingsFocus] = React.useState(null);
+  const [notice, setNotice] = React.useState('');
   const [status, setStatus] = React.useState('loading'); // loading | scanning | ready | idle | needs-key | error | no-tab
   const [settings, setSettings] = React.useState(DEFAULT_SETTINGS);
   const [apiKeys, setApiKeys] = React.useState({});
@@ -125,13 +127,21 @@ function App() {
     chrome.tabs.reload(tab.id).catch(() => {});
   };
 
+  // Right-click → Block element, started from the popup. The popup closes so
+  // the page has focus for the picker's keyboard controls.
+  const onPickElement = async () => {
+    const resp = await chrome.runtime.sendMessage({ type: 'customRules:startPicker', tabId: tab.id }).catch(() => null);
+    if (resp?.ok) window.close();
+    else setNotice(resp?.message || 'Chrome doesn’t let extensions change this page.');
+  };
+
   React.useEffect(() => {
     document.documentElement.dataset.view = view === 'report' ? 'report' : '';
   }, [view]);
 
   if (view === 'report' && report) return <ReportPanel report={report} siteUrl={tab?.url} onBack={() => setView('home')} />;
   if (view === 'settings') {
-    return <SettingsPanel settings={settings} onSettingChange={onSettingChange} apiKeys={apiKeys} onSaveApiKey={onSaveApiKey} onBack={() => setView('home')} />;
+    return <SettingsPanel settings={settings} onSettingChange={onSettingChange} apiKeys={apiKeys} onSaveApiKey={onSaveApiKey} onBack={() => setView('home')} focus={settingsFocus} />;
   }
   return (
     <PopupHome
@@ -145,7 +155,10 @@ function App() {
       onTogglePause={onTogglePause}
       onScan={() => scan()}
       onOpenReport={() => setView('report')}
-      onOpenSettings={() => setView('settings')}
+      onOpenSettings={() => { setSettingsFocus(null); setView('settings'); }}
+      onOpenKeySettings={() => { setSettingsFocus('fine-print'); setView('settings'); }}
+      onPickElement={tab ? onPickElement : null}
+      notice={notice}
     />
   );
 }

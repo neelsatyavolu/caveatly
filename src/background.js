@@ -9,11 +9,10 @@ import { analyzeLegalDocs, GroqError } from './lib/groq.js';
 import { buildReport } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
-import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused } from './lib/adblock.js';
+import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused, initAdblockLists } from './lib/adblock.js';
 import { initBrowserPrivacy } from './lib/browser-privacy.js';
 import { initLinkCleaning } from './lib/link-cleaning.js';
 import { initCustomRules } from './lib/custom-rules.js';
-import { initAdblockLists } from './lib/adblock.js';
 
 // ————— Scan pipeline —————
 // Finding and fetching documents lives in lib/doc-sources.js and lib/doc-fetch.js;
