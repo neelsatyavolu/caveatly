@@ -11,6 +11,7 @@ import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused } from
 import { initBrowserPrivacy } from './lib/browser-privacy.js';
 import { initLinkCleaning } from './lib/link-cleaning.js';
 import { initCustomRules } from './lib/custom-rules.js';
+import { initAdblockLists } from './lib/adblock.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -287,6 +288,7 @@ async function applyNetworkRules() {
 initBrowserPrivacy();
 initLinkCleaning();
 initCustomRules();
+initAdblockLists();
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));

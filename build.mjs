@@ -16,13 +16,28 @@ await build({
   logLevel: 'info',
 });
 
+// Scriptlets run in the page's MAIN world, one bundle per filter list (see
+// src/scriptlets/main.js). Identifiers stay unminified: uBO's scriptlets are
+// looked up by function name.
+await build({
+  entryPoints: ['src/scriptlets/ads.js', 'src/scriptlets/cookies.js', 'src/scriptlets/annoyances.js'],
+  bundle: true,
+  outdir: 'dist/scriptlets',
+  format: 'iife',
+  target: ['chrome110'],
+  minifyWhitespace: true,
+  minifySyntax: true,
+  logLevel: 'info',
+});
+
 cpSync('src/manifest.json', 'dist/manifest.json');
 cpSync('src/popup.html', 'dist/popup.html');
 cpSync('src/styles', 'dist/styles', { recursive: true });
 cpSync('src/icons', 'dist/icons', { recursive: true });
 // Ad blocking: DNR rulesets + cosmetic engine (npm run filters) and the
 // site-specific content scripts (sponsored results, Reuters).
-cpSync('src/filters', 'dist/filters', { recursive: true });
+// (ubo-scriptlets.js is bundled into the scripts above, not shipped on its own.)
+cpSync('src/filters', 'dist/filters', { recursive: true, filter: src => !src.endsWith('.js') });
 cpSync('src/content', 'dist/content', { recursive: true });
 
 // Bundle webfonts so the popup makes no requests to Google Fonts.
