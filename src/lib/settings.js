@@ -3,7 +3,7 @@
 export const DEFAULT_SETTINGS = {
   block: true,       // block non-essential cookies (consent handler: prefer "necessary only")
   autoReject: true,  // dismiss consent banners (consent handler: prefer "reject all")
-  minimize: false,   // strip tracking parameters from requests
+  minimize: true,    // strip tracking parameters from navigations (lib/link-cleaning.js)
   gpc: true,         // send Global Privacy Control header
   // On-page only (never when opening the toolbar popup):
   // 'off'  — never prompt or scan from the page
