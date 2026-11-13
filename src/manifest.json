@@ -9,7 +9,8 @@
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
     "favicon",
-    "privacy"
+    "privacy",
+    "contextMenus"
   ],
   "host_permissions": [
     "http://*/*",
@@ -45,6 +46,17 @@
         "pagescan.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content/custom-rules.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
     }
   ],
   "declarative_net_request": {
