@@ -52,6 +52,15 @@ a:has(> [class*="workspace-article-banner-module"]),
       "story-1 story-1 story-1 story-1"
       "story-2 story-3 story-4 story-5" !important;
   }
+  /* A lone hero (Reuters' "for-1" cluster) takes the whole row. */
+  ul[class*="story-cluster-module__ad-only"]:not(:has(> li[data-testid="StoryCard"]:nth-child(2))) {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    grid-template-areas: "story-1" !important;
+  }
+  ul[class*="story-cluster-module__ad-only"] > li[class*="story-cluster-module__story-1"] {
+    grid-column: 1 / -1 !important;
+  }
 }
 
 /* Story body: inline ad wrappers keep 24px margins after the ad is hidden. */
