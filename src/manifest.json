@@ -62,6 +62,16 @@
         "id": "reuters",
         "enabled": true,
         "path": "filters/reuters.json"
+      },
+      {
+        "id": "cookies",
+        "enabled": true,
+        "path": "filters/cookies.json"
+      },
+      {
+        "id": "annoyances",
+        "enabled": false,
+        "path": "filters/annoyances.json"
       }
     ]
   }

@@ -126,7 +126,7 @@ try {
   check(r.adShown, 'no element hiding with "Block ads" off');
 
   console.log('\n— everything off');
-  await sw.evaluate(() => chrome.storage.sync.set({ blockAds: false, blockTrackers: false }));
+  await sw.evaluate(() => chrome.storage.sync.set({ blockAds: false, blockTrackers: false, blockCookieNotices: false }));
   await page.waitForTimeout(800);
   r = await visit(page);
   check(r.ad && r.tracker && r.content, 'all requests allowed');

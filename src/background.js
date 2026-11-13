@@ -8,6 +8,7 @@ import { buildReport } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
 import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused } from './lib/adblock.js';
+import { initAdblockLists } from './lib/adblock.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -296,6 +297,8 @@ async function applyNetworkRules() {
 }
 
 // ————— Wiring —————
+
+initAdblockLists();
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
