@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS = {
   protectWebRtc: true,       // chrome.privacy: stop WebRTC from exposing local/private IPs
   blockPings: true,          // hyperlink auditing (<a ping>) off + DNR block of 'ping' requests
   unwrapLinks: true,         // skip tracking redirects (google.com/url, l.facebook.com, ...)
+  hardenChromeServices: false, // chrome.privacy: no error-page/spelling/extended-reporting uploads, no prefetch (lib/browser-privacy.js)
 };
 
 // Gemini via the OpenAI-compatible chat-completions protocol. maxInputChars is
