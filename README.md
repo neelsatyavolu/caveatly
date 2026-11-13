@@ -1,9 +1,13 @@
 # Caveatly — Chrome extension
 
-Reads the fine print for you: scans the current site's Terms of Service and
-Privacy Policy with Gemini and flags what matters in three tiers
+Blocks ads and trackers on every site, turns on privacy protections Chrome leaves
+off, and reads the fine print for you: scans the current site's Terms of Service
+and Privacy Policy with Gemini and flags what matters in three tiers
 (safe / caution / concern), graded A–F. UI implemented from the Caveatly
 design-system project (`ui_kits/extension`).
+
+Caveatly now includes what used to be two separate extensions, No Sponsored
+(sponsored results on Google and Amazon) and Reuters Ad Blocker.
 
 **Website:** https://caveatly.xanom.co ·
 **Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
@@ -37,6 +41,24 @@ npm run build        # bundles into dist/
 4. `report.js` computes the grade/stats deterministically from the flags; the report is
    cached per-origin and the badge shows the concern count.
 
+## Ad blocking
+
+- **Network blocking:** EasyList (ads) and EasyPrivacy (trackers) converted to
+  `declarativeNetRequest` rulesets in `src/filters/`, so Chrome blocks requests itself.
+  Plain `||domain^` filters are merged into shared `requestDomains` rules to stay far
+  below Chrome's 30,000 guaranteed static rules.
+- **Element hiding:** `src/adblock.js` runs in every frame and asks the service worker
+  (`src/lib/adblock.js`) for EasyList's cosmetic filters, using Ghostery's engine
+  (`src/filters/cosmetic.bin`). The worker injects the CSS with `origin: 'USER'`.
+- **Sponsored results** (`src/content/sponsored.*`) on Google and Amazon search, and
+  **Reuters** layout fixes plus a stub for its video player (`src/content/reuters*`).
+- **Per-site pause** from the popup (one `allowAllRequests` dynamic rule), and a blocked
+  count for the open tab.
+
+Refresh the lists with `npm run filters` (downloads EasyList/EasyPrivacy, regenerates
+`src/filters/`), review the diff, then `npm run build`. Lists only change when a new
+version ships; the extension never downloads them itself.
+
 ## Privacy features (Settings)
 
 - **Block non-essential cookies / dismiss consent banners** — `consent.js` clicks
@@ -60,6 +82,7 @@ page views with a cookieless script. Full details: https://caveatly.xanom.co/pri
 ```bash
 npm run test:e2e     # loads the extension into Chromium, scans real sites
 npm run test:heartbeat  # unit test: daily usage ping + opt-out (no network)
+npm run test:adblock    # ad/tracker blocking, element hiding, pause, toggles (local server)
 ```
 
 Visits github.com, stripe.com, and en.wikipedia.org; verifies extraction finds real
@@ -71,11 +94,20 @@ Screenshots land in `screenshots/`.
 
 - `src/components/` — design-system primitives (ported verbatim from the DS project)
 - `src/screens/` — PopupHome, ReportPanel, SettingsPanel
-- `src/lib/` — extraction, HTML→text, AI client, report builder, settings
+- `src/lib/` — extraction, HTML→text, AI client, report builder, settings, ad blocking
+- `src/filters/` — generated DNR rulesets and cosmetic engine (`npm run filters`)
+- `src/content/` — site-specific content scripts (sponsored results, Reuters)
+- `tools/build-filters.mjs` — filter list download and conversion
 - `src/background.js` / `src/consent.js` — service worker & consent content script
 - `src/styles/` — DS tokens (colors, type, spacing, effects)
 - `site/` — static landing page, deployed on Vercel (project root: `site`)
 
 ## License
 
-[MIT](LICENSE). Found a security issue? See [SECURITY.md](SECURITY.md).
+Caveatly's code is [MIT](LICENSE). Found a security issue? See [SECURITY.md](SECURITY.md).
+
+The generated files in `src/filters/` come from [EasyList and EasyPrivacy](https://easylist.to/),
+which are dual-licensed under GPLv3 and CC BY-SA 3.0 and keep that licence. Element hiding
+uses [@ghostery/adblocker](https://github.com/ghostery/adblocker) (MPL-2.0). The filter
+converter [@eyeo/abp2dnr](https://gitlab.com/eyeo/adblockplus/abc/abp2dnr) (GPL-3.0) is
+a build-time tool only and is not shipped.
