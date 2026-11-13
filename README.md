@@ -11,7 +11,7 @@ Caveatly now includes what used to be two separate extensions, No Sponsored
 
 **Website:** https://caveatly.xanom.co ·
 **Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
-**License:** [MIT](LICENSE)
+**License:** [MIT](LICENSE) source; built extension GPL-3.0 (see [License](#license))
 
 ## Install from a release
 
