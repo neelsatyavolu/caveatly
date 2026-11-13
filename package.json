@@ -17,7 +17,8 @@
     "test:browser-privacy": "node tests/browser-privacy.mjs",
     "test:link-cleaning": "node tests/link-cleaning-unit.mjs && node tests/link-cleaning.mjs",
     "test:custom-rules": "node tests/custom-rules.mjs",
-    "test:adblock-lists": "node tests/adblock-lists.mjs"
+    "test:adblock-lists": "node tests/adblock-lists.mjs",
+    "test:scan-coverage": "node tests/scan-coverage.mjs"
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.3",

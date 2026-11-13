@@ -1,47 +1,76 @@
-// Injected into the page via chrome.scripting.executeScript({ func }).
+// Injected into the page via chrome.scripting.executeScript({ func, args }).
 // MUST stay self-contained: executeScript serializes the function, so it cannot
-// reference anything outside its own body.
-export function extractLegalSources() {
-  const LEGAL = /(terms|conditions|privacy|polic(?:y|ies)|legal|eula|agreement|data.?protection|cookie)/i;
-  const TERMS = /(terms|conditions|eula|agreement)/i;
-  const PRIVACY = /(privacy|data.?protection)/i;
+// reference anything outside its own body. The word lists live in
+// lib/legal-links.js and arrive as regex sources in `opts`; this function only
+// gathers links, and the service worker decides which ones are policies.
+export async function extractLegalSources(opts) {
+  const linkRx = new RegExp(opts.linkSource, 'iu');
+  const hrefRx = new RegExp(opts.hrefSource, 'i');
+  const privacyRx = new RegExp(opts.privacySource, 'iu');
+  const termsRx = new RegExp(opts.termsSource, 'iu');
+  const MAX_LINKS = 400;
+  const FOOTER = 'footer, [role="contentinfo"], [id*="footer" i], [class*="footer" i]';
 
-  const seen = new Set();
-  const candidates = [];
-  for (const a of document.querySelectorAll('a[href]')) {
-    const href = a.href;
-    if (!/^https?:/.test(href)) continue;
-    const text = (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80);
-    if (!LEGAL.test(text) && !LEGAL.test(href)) continue;
-    const key = href.split('#')[0];
-    if (seen.has(key)) continue;
-    seen.add(key);
-    // Prefer links whose visible text names the document over incidental URL matches.
-    const score = (LEGAL.test(text) ? 2 : 0) + (TERMS.test(text) || TERMS.test(href) ? 1 : 0) + (PRIVACY.test(text) || PRIVACY.test(href) ? 1 : 0);
-    const kind = PRIVACY.test(text) || PRIVACY.test(href) ? 'privacy' : (TERMS.test(text) || TERMS.test(href) ? 'terms' : 'legal');
-    candidates.push({ url: key, text, kind, score });
-  }
-  candidates.sort((a, b) => b.score - a.score);
+  // Links can sit inside open shadow roots (web-component footers), which
+  // document.querySelectorAll does not reach.
+  const roots = () => {
+    const out = [document];
+    for (let i = 0; i < out.length && out.length < 200; i++) {
+      for (const el of out[i].querySelectorAll('*')) {
+        if (el.shadowRoot) out.push(el.shadowRoot);
+      }
+    }
+    return out;
+  };
 
-  // Best candidate per kind, at most one terms + one privacy (fallback: top two overall).
-  const picked = [];
-  for (const kind of ['terms', 'privacy']) {
-    const hit = candidates.find(c => c.kind === kind);
-    if (hit) picked.push(hit);
-  }
-  for (const c of candidates) {
-    if (picked.length >= 2) break;
-    if (!picked.includes(c)) picked.push(c);
+  const collect = () => {
+    const links = [];
+    const seen = new Set();
+    for (const root of roots()) {
+      for (const a of root.querySelectorAll('a[href]')) {
+        const href = a.href;
+        if (typeof href !== 'string' || !/^https?:/i.test(href)) continue;
+        const text = (a.textContent || a.getAttribute('aria-label') || a.title || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+        let path = '';
+        try { const u = new URL(href); path = decodeURIComponent(u.pathname + u.search); } catch { continue; }
+        if (!linkRx.test(text) && !hrefRx.test(path)) continue;
+        const key = `${href}|${text}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        links.push({ text, href, inFooter: Boolean(a.closest(FOOTER)) });
+        if (links.length >= MAX_LINKS) return links;
+      }
+    }
+    return links;
+  };
+
+  const hasBoth = links => links.some(l => privacyRx.test(l.text)) && links.some(l => termsRx.test(l.text));
+
+  // Footers on single-page apps render after load (TikTok, Airbnb, Spotify):
+  // poll for a short while before settling for what is there.
+  let links = collect();
+  const deadline = Date.now() + (opts.waitMs || 0);
+  while (!hasBoth(links) && Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 400));
+    links = collect();
   }
 
-  const looksLegal = LEGAL.test(document.title) || LEGAL.test(location.pathname);
+  const title = document.title || '';
+  const looksLegal = privacyRx.test(title) || termsRx.test(title) || hrefRx.test(location.pathname);
+  // Prefer the main content over the whole body so menus and footers stay out.
+  const mainText = () => {
+    const main = document.querySelector('main, article, [role="main"]');
+    const text = main ? main.innerText || '' : '';
+    return text.length >= 2000 ? text : (document.body ? document.body.innerText || '' : '');
+  };
   return {
     url: location.href,
     origin: location.origin,
     hostname: location.hostname.replace(/^www\./, ''),
-    title: document.title,
+    title,
+    contentType: document.contentType || '',
     looksLegal,
-    pageText: looksLegal ? (document.body.innerText || '').slice(0, 120000) : null,
-    candidates: picked,
+    pageText: looksLegal ? mainText().slice(0, opts.maxPageChars || 400000) : null,
+    links,
   };
 }
