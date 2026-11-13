@@ -1,9 +1,10 @@
 import React from 'react';
-import { ArrowRight, Cookie, Globe, KeyRound, ScanSearch, Settings, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Globe, KeyRound, ScanSearch, Settings, TriangleAlert } from 'lucide-react';
 import { Button } from '../components/Button.jsx';
 import { IconButton } from '../components/IconButton.jsx';
 import { StatPill } from '../components/StatPill.jsx';
 import { SiteIcon } from '../components/SiteIcon.jsx';
+import { ProtectionFooter } from '../components/ProtectionFooter.jsx';
 
 const GRADE_STYLE = {
   A: { tint: 'var(--safe-tint)', color: 'var(--safe-600)' },
@@ -24,7 +25,7 @@ function EmptyState({ icon, headline, body, action }) {
   );
 }
 
-export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, onScan, onOpenReport, onOpenSettings }) {
+export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onScan, onOpenReport, onOpenSettings }) {
   const top = report ? report.flags.filter(f => f.tier === 'concern').slice(0, 3) : [];
   const topLabel = top.length ? 'Top concerns' : 'Top findings';
   const shown = top.length ? top : (report ? report.flags.slice(0, 3) : []);
@@ -116,7 +117,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
 
             {shown.length > 0 && (
               <>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-faint)', margin: '4px 2px 8px' }}>{topLabel}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '4px 2px 8px' }}>{topLabel}</div>
                 <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 14 }}>
                   {shown.map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '9px 11px', borderLeft: `3px solid var(--${f.tier}-600)`, borderBottom: i < shown.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
@@ -137,11 +138,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
       </div>
 
-      {/* cookie footer */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px', marginTop: 8, background: cookieFooter.on ? 'var(--safe-tint)' : 'var(--surface-sunken)', borderTop: `1px solid ${cookieFooter.on ? 'var(--safe-border)' : 'var(--border-subtle)'}`, color: cookieFooter.on ? 'var(--safe-600)' : 'var(--text-muted)' }}>
-        <Cookie size={16} />
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{cookieFooter.text}</span>
-      </div>
+      <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
 
 await build({
-  entryPoints: ['src/popup.jsx', 'src/background.js', 'src/consent.js', 'src/pagescan.js'],
+  entryPoints: ['src/popup.jsx', 'src/background.js', 'src/consent.js', 'src/pagescan.js', 'src/adblock.js'],
   bundle: true,
   outdir: 'dist',
   format: 'iife',
@@ -20,6 +20,10 @@ cpSync('src/manifest.json', 'dist/manifest.json');
 cpSync('src/popup.html', 'dist/popup.html');
 cpSync('src/styles', 'dist/styles', { recursive: true });
 cpSync('src/icons', 'dist/icons', { recursive: true });
+// Ad blocking: DNR rulesets + cosmetic engine (npm run filters) and the
+// site-specific content scripts (sponsored results, Reuters).
+cpSync('src/filters', 'dist/filters', { recursive: true });
+cpSync('src/content', 'dist/content', { recursive: true });
 
 // Bundle webfonts so the popup makes no requests to Google Fonts.
 const FONTS = [

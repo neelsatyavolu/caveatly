@@ -1,8 +1,8 @@
 {
   "name": "caveatly",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
-  "description": "Caveatly — Chrome extension that reads the fine print for you.",
+  "description": "Caveatly — Chrome extension that blocks ads and trackers and reads the fine print for you.",
   "license": "MIT",
   "repository": "github:neelsatyavolu/caveatly",
   "homepage": "https://caveatly.xanom.co",
@@ -11,15 +11,21 @@
     "build": "node build.mjs",
     "test:popup-shell": "node tests/popup-shell.mjs",
     "test:e2e": "node tests/e2e.mjs",
-    "test:heartbeat": "node tests/heartbeat.mjs"
+    "test:heartbeat": "node tests/heartbeat.mjs",
+    "filters": "node tools/build-filters.mjs",
+    "test:adblock": "node tests/adblock.mjs"
   },
   "dependencies": {
+    "@ghostery/adblocker": "2.20.3",
+    "@ghostery/adblocker-webextension-cosmetics": "2.20.3",
     "lucide-react": "^0.469.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tldts-experimental": "7.5.2",
     "unpdf": "^1.8.0"
   },
   "devDependencies": {
+    "@eyeo/abp2dnr": "1.3.2",
     "@fontsource-variable/hanken-grotesk": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/newsreader": "^5.3.0",

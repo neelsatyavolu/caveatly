@@ -26,9 +26,9 @@
   </header>
 
   <main class="prose wrap">
-    <p class="eyebrow">Last updated September 23, 2026</p>
     <h1>Privacy Policy</h1>
-    <p class="lede">Caveatly is a Chrome extension that reads a website’s Terms of Service and Privacy Policy with AI and flags what matters. It has no account, and apart from an anonymous daily usage ping you can turn off, it sends nothing to its developer. This page explains exactly what it handles.</p>
+    <p class="updated">Last updated November 13, 2026</p>
+    <p class="lede">Caveatly is a Chrome extension that blocks ads and trackers, and reads a website’s Terms of Service and Privacy Policy with AI to flag what matters. It has no account, and apart from an anonymous daily usage ping you can turn off, it sends nothing to its developer. This page explains exactly what it handles.</p>
 
     <h2>What Caveatly sends, and to whom</h2>
     <p>When you scan a site, Caveatly sends two things to <b>Google’s Gemini API</b> (<code>generativelanguage.googleapis.com</code>), using the API key you entered:</p>
@@ -58,12 +58,16 @@
       <li><b>Scan reports</b> for the sites you scanned, in <code>chrome.storage.local</code>, so you don’t have to re-scan. These include the site’s domain and the flagged clauses.</li>
       <li><b>A random install ID</b> and the date of the last usage ping, in <code>chrome.storage.local</code>, for the anonymous usage stats.</li>
       <li><b>Prompt choices</b>, such as dismissing the on-page scan prompt for a domain, in <code>chrome.storage.local</code>.</li>
-      <li><b>Your settings</b> (the on/off toggles and scan mode), in <code>chrome.storage.sync</code>. If you use Chrome sync, Google syncs these toggles between your devices. Your API key is never included.</li>
+      <li><b>Your settings</b> (the on/off toggles, scan mode, and the sites where you paused ad blocking), in <code>chrome.storage.sync</code>. If you use Chrome sync, Google syncs these toggles between your devices. Your API key is never included.</li>
     </ul>
     <p>Removing the extension deletes all of this.</p>
 
     <h2>Privacy features</h2>
     <p>Depending on your settings, Caveatly clicks “necessary only” or “reject all” on common cookie banners, sends the <code>Sec-GPC: 1</code> Global Privacy Control signal to sites you visit, and removes tracking parameters such as <code>utm_*</code>, <code>gclid</code> and <code>fbclid</code> from links you open. All of this happens locally, in your browser.</p>
+
+    <h2>Ad and tracker blocking</h2>
+    <p>Ad blocking runs entirely in your browser. The blocking rules, built from the public <a href="https://easylist.to/">EasyList and EasyPrivacy</a> filter lists, ship inside the extension and are applied by Chrome itself (the <code>declarativeNetRequest</code> API), so Caveatly does not see or log the requests it blocks. To hide leftover ad boxes, a script in each page sends the page’s address and the class names and IDs it contains to Caveatly’s own background process, which replies with the matching hiding rules. That exchange never leaves your computer. The number of blocked requests shown in the toolbar comes from Chrome and is not stored.</p>
+    <p>Filter lists are updated with each Caveatly release; the extension does not download them on its own.</p>
 
     <h2>What Caveatly does not do</h2>
     <ul>
@@ -73,7 +77,7 @@
     </ul>
 
     <h2>Why it needs access to all websites</h2>
-    <p>Terms and privacy links can appear on any website, and the cookie-banner, Global Privacy Control and tracking-parameter features apply wherever you browse. Caveatly reads a page only to find those links and banners; it never collects or sends page contents except the legal documents you choose to scan.</p>
+    <p>Ads and trackers, terms and privacy links, and cookie banners can appear on any website, and the Global Privacy Control and tracking-parameter features apply wherever you browse. Caveatly reads a page only to find those links, banners and ad elements; it never collects or sends page contents except the legal documents you choose to scan.</p>
 
     <h2>Children</h2>
     <p>Caveatly is not directed at children under 13 and does not knowingly collect any information from them.</p>

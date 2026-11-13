@@ -30,6 +30,8 @@ function cookieFooterFor(settings, consentAction) {
   return { on: false, text: 'Cookie guard is off' };
 }
 
+const ADBLOCK_REFRESH_MS = 2000;
+
 function App() {
   const [view, setView] = React.useState('home'); // home | report | settings
   const [status, setStatus] = React.useState('loading'); // loading | scanning | ready | idle | needs-key | error | no-tab
@@ -39,6 +41,7 @@ function App() {
   const [report, setReport] = React.useState(null);
   const [errorMessage, setErrorMessage] = React.useState('');
   const [consentAction, setConsentAction] = React.useState(null);
+  const [adblock, setAdblock] = React.useState(null); // { enabled, paused, blocked } | null
 
   const scan = React.useCallback(async targetTab => {
     const t = targetTab || tab;
@@ -94,6 +97,34 @@ function App() {
 
   const site = tab ? new URL(tab.url).hostname.replace(/^www\./, '') : null;
 
+  // Blocked-request count for the open tab, refreshed while the popup is open.
+  React.useEffect(() => {
+    if (!tab) return undefined;
+    let cancelled = false;
+    const refresh = () => chrome.runtime.sendMessage({ type: 'adblockStatus', tabId: tab.id, url: tab.url })
+      .then(next => { if (!cancelled && next) setAdblock(next); })
+      .catch(() => {});
+    refresh();
+    const timer = setInterval(refresh, ADBLOCK_REFRESH_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [tab, settings.blockAds, settings.blockTrackers, settings.pausedSites]);
+
+  // Pausing takes effect on the next page load, so reload the tab right away.
+  const onTogglePause = async () => {
+    if (!tab || !adblock) return;
+    const paused = !adblock.paused;
+    const resp = await chrome.runtime.sendMessage({ type: 'setSitePaused', hostname: new URL(tab.url).hostname, paused })
+      .catch(() => null);
+    if (!resp?.ok) return;
+    setAdblock(prev => ({ ...prev, paused, blocked: null }));
+    const site = new URL(tab.url).hostname.replace(/^www\./, '');
+    setSettings(prev => ({
+      ...prev,
+      pausedSites: paused ? [...prev.pausedSites.filter(s => s !== site), site] : prev.pausedSites.filter(s => s !== site),
+    }));
+    chrome.tabs.reload(tab.id).catch(() => {});
+  };
+
   React.useEffect(() => {
     document.documentElement.dataset.view = view === 'report' ? 'report' : '';
   }, [view]);
@@ -110,6 +141,8 @@ function App() {
       site={site}
       siteUrl={tab?.url}
       cookieFooter={cookieFooterFor(settings, consentAction)}
+      adblock={adblock}
+      onTogglePause={onTogglePause}
       onScan={() => scan()}
       onOpenReport={() => setView('report')}
       onOpenSettings={() => setView('settings')}

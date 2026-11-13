@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, KeyRound } from 'lucide-react';
+import { ArrowLeft, KeyRound, X } from 'lucide-react';
 import { IconButton } from '../components/IconButton.jsx';
 import { Toggle } from '../components/Toggle.jsx';
 import { Button } from '../components/Button.jsx';
@@ -8,7 +8,7 @@ import { PROVIDERS, DEFAULT_PROVIDER } from '../lib/settings.js';
 function Section({ title, children }) {
   return (
     <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-faint)', marginBottom: 12 }}>{title}</div>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>{title}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>{children}</div>
     </div>
   );
@@ -59,12 +59,33 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
             />
             <Button size="md" variant="secondary" disabled={!draftKey.trim()} onClick={save}>{saved ? 'Saved' : 'Save'}</Button>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.45 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.45 }}>
             Reads entire policies (1M context) · free at aistudio.google.com. Key stored only on this device.
           </div>
         </div>
       </Section>
 
+      <Section title="Ad blocking">
+        <Toggle checked={settings.blockAds} onChange={v => onSettingChange('blockAds', v)} label="Block ads" description="On every site, including sponsored results on Google and Amazon. Uses EasyList." />
+        <Toggle checked={settings.blockTrackers} onChange={v => onSettingChange('blockTrackers', v)} label="Block trackers" description="Stops analytics and tracking requests. Uses EasyPrivacy." />
+        {settings.pausedSites.length > 0 && (
+          <div>
+            <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginBottom: 6 }}>Paused on</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {settings.pausedSites.map(site => (
+                <button
+                  key={site}
+                  className="fp-chip"
+                  aria-label={`Resume blocking on ${site}`}
+                  onClick={() => onSettingChange('pausedSites', settings.pausedSites.filter(s => s !== site))}
+                >
+                  {site}<X size={13} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </Section>
       <Section title="Cookies">
         <Toggle checked={settings.block} onChange={v => onSettingChange('block', v)} label="Block non-essential cookies" description="Auto-accept necessary cookies only on every site." />
         <Toggle checked={settings.autoReject} onChange={v => onSettingChange('autoReject', v)} label="Dismiss consent banners" description="Reject optional tracking and close the popup for you." />
@@ -104,7 +125,7 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
       <Section title="Usage stats">
         <Toggle checked={settings.usageStats} onChange={v => onSettingChange('usageStats', v)} label="Share anonymous usage stats" description="Sends a daily ping with a random install ID, extension version and Chrome version. No personal data." />
       </Section>
-      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Caveatly · v0.1.2 · settings sync locally</div>
+      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Caveatly v{chrome.runtime.getManifest().version} · settings sync with Chrome</div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // Caveatly MV3 service worker: orchestrates page scans, caches reports per
-// origin, keeps the toolbar badge in sync, and applies privacy network rules.
+// origin, keeps the toolbar badge in sync, and applies privacy and ad-blocking rules.
 import { extractLegalSources } from './lib/extract-page.js';
 import { htmlToText } from './lib/html-to-text.js';
 import { pdfToText } from './lib/pdf-to-text.js';
@@ -7,6 +7,7 @@ import { analyzeLegalDocs, GroqError } from './lib/groq.js';
 import { buildReport } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
+import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused } from './lib/adblock.js';
 
 const MIN_DOC_CHARS = 800;
 const FETCH_TIMEOUT_MS = 15000;
@@ -255,6 +256,9 @@ const consentByTab = new Map();
 
 const GPC_RULE_ID = 1001;
 const PARAM_RULE_ID = 1002;
+// Above the per-site pause rule (lib/adblock.js), so pausing ad blocking on a
+// site keeps GPC and parameter stripping working there.
+const PRIVACY_RULE_PRIORITY = 200000;
 const TRACKING_PARAMS = [
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
   'gclid', 'fbclid', 'msclkid', 'mc_eid', 'igshid', 'twclid',
@@ -266,7 +270,7 @@ async function applyNetworkRules() {
   if (settings.gpc) {
     addRules.push({
       id: GPC_RULE_ID,
-      priority: 1,
+      priority: PRIVACY_RULE_PRIORITY,
       action: {
         type: 'modifyHeaders',
         requestHeaders: [{ header: 'Sec-GPC', operation: 'set', value: '1' }],
@@ -277,7 +281,7 @@ async function applyNetworkRules() {
   if (settings.minimize) {
     addRules.push({
       id: PARAM_RULE_ID,
-      priority: 1,
+      priority: PRIVACY_RULE_PRIORITY,
       action: {
         type: 'redirect',
         redirect: { transform: { queryTransform: { removeParams: TRACKING_PARAMS } } },
@@ -301,6 +305,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
   if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
   applyNetworkRules();
+  applyAdblockSettings();
   startUsageStats();
 });
 
@@ -316,6 +321,7 @@ chrome.runtime.onStartup.addListener(startUsageStats);
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && (changes.gpc || changes.minimize)) applyNetworkRules();
+  if (area === 'sync' && (changes.blockAds || changes.blockTrackers || changes.pausedSites)) applyAdblockSettings();
   if (area === 'sync' && changes.usageStats) {
     syncUninstallUrl(changes.usageStats.newValue);
     if (changes.usageStats.newValue) maybeSendHeartbeat();
@@ -325,7 +331,23 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.tabs.onRemoved.addListener(tabId => consentByTab.delete(tabId));
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Element-hiding requests come from every frame of every page; answer them
+  // before anything else and keep them out of the heartbeat path.
+  if (msg?.type === 'cosmetics') {
+    cosmeticsFor(msg, sender).then(sendResponse).catch(() => sendResponse({ active: false, scripts: [], styles: '', extended: [] }));
+    return true;
+  }
   maybeSendHeartbeat();
+  // Popup-only controls: ignore them when they come from a content script.
+  const fromPopup = sender.id === chrome.runtime.id && sender.url?.startsWith(chrome.runtime.getURL('popup.html'));
+  if (msg?.type === 'adblockStatus' && fromPopup) {
+    adblockStatus(msg.tabId, msg.url).then(sendResponse).catch(() => sendResponse(null));
+    return true;
+  }
+  if (msg?.type === 'setSitePaused' && fromPopup) {
+    setSitePaused(msg.hostname, msg.paused).then(() => sendResponse({ ok: true })).catch(e => sendResponse({ ok: false, message: e.message }));
+    return true;
+  }
   if (msg?.type === 'scan') {
     runScan(msg.tabId).then(sendResponse).catch(e => sendResponse({ ok: false, error: 'unexpected', message: e.message }));
     return true; // async response

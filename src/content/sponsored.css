@@ -1,0 +1,12 @@
+/* Amazon: sponsored search results and sponsored video/brand blocks */
+.AdHolder,
+.s-result-item:has(.sbv-video-multi-product),
+.s-result-item:has(.sb-desktop),
+/* Google: top and bottom text ads, ads mixed into results */
+#tvcap,
+#tads,
+#tadsb,
+#bottomads,
+[data-text-ad] {
+  display: none !important;
+}
