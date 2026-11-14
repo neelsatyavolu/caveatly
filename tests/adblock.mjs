@@ -100,6 +100,17 @@ try {
   check(!r.adShown && !r.sponsoredShown, 'ad elements hidden');
   check(r.contentShown, 'page content still visible');
 
+  // A list re-rendered with innerHTML, as TodoMVC-style apps do: only the
+  // last render is left in the page, and its new ad class must still be hidden.
+  await page.evaluate(() => {
+    const list = document.createElement('div');
+    document.body.append(list);
+    for (let i = 0; i < 50; i++) list.innerHTML = `<p class="row-${i}">row</p>`.repeat(i);
+    list.innerHTML += '<div class="top-ad late-ad">AD</div>';
+  });
+  await page.waitForTimeout(1500);
+  check(await page.$eval('.late-ad', el => getComputedStyle(el).display === 'none'), 'ad added after load by a re-render is hidden');
+
   const tabId = await sw.evaluate(async site => {
     const [tab] = await chrome.tabs.query({ url: `http://${site}/*` });
     return tab?.id ?? null;

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Caveatly",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Blocks ads and trackers on every site, and reads the fine print: flags what matters in terms of service and privacy policies.",
   "permissions": [
     "storage",
