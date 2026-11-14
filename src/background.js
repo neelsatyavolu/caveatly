@@ -1,208 +1,92 @@
 // Caveatly MV3 service worker: orchestrates page scans, caches reports per
-// origin, keeps the toolbar badge in sync, and applies privacy network rules.
+// origin, keeps the toolbar badge in sync, and applies privacy and ad-blocking rules.
 import { extractLegalSources } from './lib/extract-page.js';
-import { htmlToText } from './lib/html-to-text.js';
-import { pdfToText } from './lib/pdf-to-text.js';
+import { gatherDocs, fitDocs, pdfTabExtract } from './lib/doc-sources.js';
+import { isRenderTab, MAX_DOC_CHARS } from './lib/doc-fetch.js';
+import { unsupportedTab, injectionFailure, isPdfUrl } from './lib/scan-target.js';
+import { LINK_PREFILTER_SOURCE, HREF_PREFILTER_SOURCE, PRIVACY_TEXT_SOURCE, TERMS_TEXT_SOURCE } from './lib/legal-links.js';
 import { analyzeLegalDocs, GroqError } from './lib/groq.js';
 import { buildReport } from './lib/report.js';
 import { getSettings, getApiConfig, DEFAULT_SETTINGS } from './lib/settings.js';
 import { maybeSendHeartbeat, syncUninstallUrl } from './lib/heartbeat.js';
-
-const MIN_DOC_CHARS = 800;
-const FETCH_TIMEOUT_MS = 15000;
+import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused, initAdblockLists } from './lib/adblock.js';
+import { initBrowserPrivacy } from './lib/browser-privacy.js';
+import { initLinkCleaning } from './lib/link-cleaning.js';
+import { initCustomRules } from './lib/custom-rules.js';
 
 // ————— Scan pipeline —————
+// Finding and fetching documents lives in lib/doc-sources.js and lib/doc-fetch.js;
+// lib/scan-target.js explains pages that cannot be scanned.
 
-function isUsableDocText(text) {
-  if (!text || text.length < MIN_DOC_CHARS) return false;
-  // Soft bot walls (Amazon often returns 200/503 with this shell instead of the policy).
-  if (/api-services-support@amazon\.com|automated access to Amazon data/i.test(text)) return false;
-  return true;
-}
+const EXTRACT_OPTS = {
+  linkSource: LINK_PREFILTER_SOURCE,
+  hrefSource: HREF_PREFILTER_SOURCE,
+  privacySource: PRIVACY_TEXT_SOURCE,
+  termsSource: TERMS_TEXT_SOURCE,
+  // Late footers on single-page apps: wait up to this long for terms + privacy links.
+  waitMs: 5000,
+  maxPageChars: MAX_DOC_CHARS,
+};
 
-async function fetchDocText(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    // credentials:include — sites like Amazon bot-block cookie-less SW fetches (503).
-    const res = await fetch(url, { signal: controller.signal, redirect: 'follow', credentials: 'include' });
-    if (!res.ok) return null;
-    const type = res.headers.get('content-type') || '';
-    if (/pdf/i.test(type) || /\.pdf(\?|#|$)/i.test(url)) {
-      return pdfToText(await res.arrayBuffer());
-    }
-    if (type && !/html|text|xml/.test(type)) return null;
-    const text = htmlToText(await res.text());
-    return isUsableDocText(text) ? text : null;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// When the service worker is bot-blocked, fetch from the open tab so the request
-// uses the page's cookie jar + network context (fixes Amazon help pages).
-async function fetchDocTextViaTab(tabId, url) {
-  if (tabId == null) return null;
-  try {
-    const [{ result }] = await chrome.scripting.executeScript({
-      target: { tabId },
-      args: [url, FETCH_TIMEOUT_MS],
-      func: async (docUrl, timeoutMs) => {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-          const res = await fetch(docUrl, { signal: controller.signal, redirect: 'follow', credentials: 'include' });
-          if (!res.ok) return null;
-          const type = res.headers.get('content-type') || '';
-          if (/pdf/i.test(type) || /\.pdf(\?|#|$)/i.test(docUrl)) return null;
-          if (type && !/html|text|xml/i.test(type)) return null;
-          return await res.text();
-        } catch {
-          return null;
-        } finally {
-          clearTimeout(timer);
-        }
-      },
-    });
-    if (typeof result !== 'string') return null;
-    const text = htmlToText(result);
-    return isUsableDocText(text) ? text : null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchDocTextBest(url, tabId) {
-  return (await fetchDocText(url)) || (await fetchDocTextViaTab(tabId, url));
-}
-
-function docLabel(kind, linkText) {
-  if (kind === 'privacy') return 'Privacy Policy';
-  if (kind === 'terms') return 'Terms of Service';
-  return linkText || 'Legal';
-}
-
-// Subdomains (tools.usps.com, store.github.com) often omit footer legal links.
-// Walk the origin, then apex / www.apex so we can still find the site's policies.
-// Naive eTLD+1 (last two labels) — good enough for .com/.org/.net; multi-part
-// public suffixes (co.uk) may over-strip, which only costs an extra failed fetch.
-function relatedOrigins(origin) {
-  let u;
-  try { u = new URL(origin); } catch { return [origin]; }
-  const host = u.hostname.replace(/^www\./i, '');
-  const parts = host.split('.').filter(Boolean);
-  const out = [];
-  const add = (h) => {
-    const o = `${u.protocol}//${h}`;
-    if (!out.includes(o)) out.push(o);
+// What the scan found and read, for the popup ("Read: Privacy Policy, 42k
+// characters") and the coverage harness. Never includes document text.
+function scanSources(candidates, docs, failures) {
+  return {
+    candidates: candidates.map(c => ({ url: c.url, kind: c.kind })),
+    docs: docs.map(d => ({ kind: d.kind, label: d.label, url: d.url, chars: d.text.length })),
+    failures,
   };
-  add(u.hostname);
-  if (parts.length >= 2) {
-    const apex = parts.slice(-2).join('.');
-    add(apex);
-    add(`www.${apex}`);
-  }
-  // Also try peeling one label at a time (a.b.example.com → b.example.com → …)
-  for (let i = 1; i < parts.length - 1; i++) {
-    add(parts.slice(i).join('.'));
-    add(`www.${parts.slice(i).join('.')}`);
-  }
-  return out;
 }
 
-// Deep pages sometimes lack footer links — fall back to scanning homepage HTML
-// (this origin, then related apex/www origins) for Terms/Privacy links.
-async function homepageCandidates(origin, excludeUrl) {
-  try {
-    const res = await fetch(`${origin}/`, { credentials: 'include', redirect: 'follow' });
-    if (!res.ok) return [];
-    const html = await res.text();
-    const LEGAL = /(terms|conditions|privacy|polic(?:y|ies)|legal|eula|agreement)/i;
-    const byKind = new Map();
-    const anchor = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]{0,150}?)<\/a>/gi;
-    let m;
-    while ((m = anchor.exec(html))) {
-      const text = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!LEGAL.test(text) && !LEGAL.test(m[1])) continue;
-      let abs;
-      try { abs = new URL(m[1], origin).href.split('#')[0]; } catch { continue; }
-      if (!/^https?:/.test(abs) || abs === excludeUrl) continue;
-      const hay = text + ' ' + abs;
-      const kind = /privacy|data.?protection/i.test(hay) ? 'privacy'
-        : /terms|conditions|eula|agreement/i.test(hay) ? 'terms' : 'legal';
-      if (!byKind.has(kind)) byKind.set(kind, { url: abs, text, kind });
+const EXTRACT_ATTEMPTS = 3;
+const EXTRACT_RETRY_MS = 1500;
+
+async function extractFromTab(tab) {
+  if (isPdfUrl(tab.url)) return pdfTabExtract(tab.url);
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      const [{ result }] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: extractLegalSources,
+        args: [EXTRACT_OPTS],
+      });
+      // Chrome's PDF viewer on a URL without .pdf in it.
+      if (result && /pdf/i.test(result.contentType)) return pdfTabExtract(tab.url);
+      if (result) return { extracted: result };
+    } catch (e) {
+      const navigating = /destroyed|removed|navigat|No frame|back\/forward cache/i.test(e.message);
+      if (!navigating || attempt >= EXTRACT_ATTEMPTS) return { failure: injectionFailure(e, tab) };
     }
-    // Prefer real terms/privacy over generic "legal" (FOIA, Law Department, …).
-    const picked = [];
-    for (const kind of ['terms', 'privacy']) {
-      if (byKind.has(kind)) picked.push(byKind.get(kind));
+    // No result means the page navigated while we read it (Booking.com reloads
+    // itself after load): give it a moment and read the new page.
+    if (attempt >= EXTRACT_ATTEMPTS) {
+      return { failure: { ok: false, error: 'inject-failed', message: 'This page kept reloading while Caveatly read it. Wait for it to settle, then scan again.' } };
     }
-    if (picked.length < 2 && byKind.has('legal')) picked.push(byKind.get('legal'));
-    return picked.slice(0, 2);
-  } catch {
-    return [];
+    await new Promise(r => setTimeout(r, EXTRACT_RETRY_MS));
   }
-}
-
-async function fallbackCandidates(origin, excludeUrl) {
-  for (const o of relatedOrigins(origin)) {
-    const cands = await homepageCandidates(o, excludeUrl);
-    if (cands.some(c => c.kind === 'terms' || c.kind === 'privacy')) return cands;
-  }
-  return [];
-}
-
-async function fetchCandidateDocs(candidates, docs, tabId) {
-  const fetched = await Promise.all(candidates.map(async c => ({
-    c,
-    text: await fetchDocTextBest(c.url, tabId),
-  })));
-  for (const { c, text } of fetched) {
-    if (text) docs.push({ label: docLabel(c.kind, c.text), url: c.url, text });
-  }
-}
-
-async function gatherDocs(extracted, tabId) {
-  const docs = [];
-  if (extracted.looksLegal && extracted.pageText && isUsableDocText(extracted.pageText)) {
-    const label = /privacy/i.test(extracted.title + extracted.url) ? 'Privacy Policy' : 'Terms of Service';
-    docs.push({ label, url: extracted.url, text: extracted.pageText });
-  }
-  const pageUrl = extracted.url.split('#')[0];
-  const candidates = (extracted.candidates || [])
-    .filter(c => c.url.split('#')[0] !== pageUrl)
-    .slice(0, 2 - docs.length);
-  await fetchCandidateDocs(candidates, docs, tabId);
-  if (!docs.length) {
-    await fetchCandidateDocs(await fallbackCandidates(extracted.origin, pageUrl), docs, tabId);
-  }
-  return docs;
 }
 
 async function runScan(tabId) {
+  if (isRenderTab(tabId)) return { ok: false, error: 'render-tab', message: 'Caveatly opened this tab to read a policy; it closes by itself.' };
   const tab = await chrome.tabs.get(tabId);
-  if (!tab.url || !/^https?:/.test(tab.url)) {
-    return { ok: false, error: 'unsupported-page', message: 'Caveatly can only scan regular web pages.' };
-  }
+  const unsupported = await unsupportedTab(tab);
+  if (unsupported) return unsupported;
 
   const { apiKey, apiBase, model, maxInputChars, maxOutputTokens } = await getApiConfig();
   if (!apiKey) return { ok: false, error: 'no-key' };
 
-  let extracted;
-  try {
-    const [{ result }] = await chrome.scripting.executeScript({ target: { tabId }, func: extractLegalSources });
-    extracted = result;
-  } catch (e) {
-    return { ok: false, error: 'inject-failed', message: `Couldn't read this page: ${e.message}` };
-  }
-  if (!extracted) return { ok: false, error: 'inject-failed', message: "Couldn't read this page." };
+  const { extracted, failure } = await extractFromTab(tab);
+  if (failure) return failure;
 
-  const docs = await gatherDocs(extracted, tabId);
-  if (!docs.length) {
-    return { ok: false, error: 'no-docs', message: 'No terms of service or privacy policy found on this page.' };
+  const { docs: found, candidates, failures } = await gatherDocs(extracted, tabId);
+  const sources = scanSources(candidates, found, failures);
+  if (!found.length) {
+    const message = extracted.isPdf
+      ? "This PDF doesn't look like terms of service or a privacy policy, so there is nothing to scan."
+      : `Couldn't find terms of service or a privacy policy for ${extracted.hostname}. The site may not link them, or it blocked Caveatly from reading them.`;
+    return { ok: false, error: 'no-docs', message, sources };
   }
+  const docs = fitDocs(found, maxInputChars);
 
   try {
     const flags = await analyzeLegalDocs({ apiKey, apiBase, model, maxInputChars, maxOutputTokens, site: extracted.hostname, docs });
@@ -216,7 +100,7 @@ async function runScan(tabId) {
     await chrome.storage.session.set({ [`report:${extracted.origin}`]: report });
     await chrome.storage.local.set({ [`report:${extracted.origin}`]: report });
     updateBadge(tabId, report);
-    return { ok: true, report };
+    return { ok: true, report, sources };
   } catch (e) {
     if (e instanceof GroqError && (e.code === 'no-key' || e.code === 'bad-key')) {
       return { ok: false, error: 'no-key' };
@@ -251,14 +135,12 @@ async function openReportUi(tabId) {
 
 const consentByTab = new Map();
 
-// ————— Privacy network rules (GPC header + tracking-param stripping) —————
+// ————— Privacy network rules (GPC header; tracking params live in lib/link-cleaning.js) —————
 
 const GPC_RULE_ID = 1001;
-const PARAM_RULE_ID = 1002;
-const TRACKING_PARAMS = [
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'gclid', 'fbclid', 'msclkid', 'mc_eid', 'igshid', 'twclid',
-];
+// Above the per-site pause rule (lib/adblock.js), so pausing ad blocking on a
+// site keeps GPC working there.
+const PRIVACY_RULE_PRIORITY = 200000;
 
 async function applyNetworkRules() {
   const settings = await getSettings();
@@ -266,7 +148,7 @@ async function applyNetworkRules() {
   if (settings.gpc) {
     addRules.push({
       id: GPC_RULE_ID,
-      priority: 1,
+      priority: PRIVACY_RULE_PRIORITY,
       action: {
         type: 'modifyHeaders',
         requestHeaders: [{ header: 'Sec-GPC', operation: 'set', value: '1' }],
@@ -274,24 +156,18 @@ async function applyNetworkRules() {
       condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest'] },
     });
   }
-  if (settings.minimize) {
-    addRules.push({
-      id: PARAM_RULE_ID,
-      priority: 1,
-      action: {
-        type: 'redirect',
-        redirect: { transform: { queryTransform: { removeParams: TRACKING_PARAMS } } },
-      },
-      condition: { urlFilter: '*', resourceTypes: ['main_frame'] },
-    });
-  }
   await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [GPC_RULE_ID, PARAM_RULE_ID],
+    removeRuleIds: [GPC_RULE_ID],
     addRules,
   });
 }
 
 // ————— Wiring —————
+
+initBrowserPrivacy();
+initLinkCleaning();
+initCustomRules();
+initAdblockLists();
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
@@ -301,6 +177,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
   if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
   applyNetworkRules();
+  applyAdblockSettings();
   startUsageStats();
 });
 
@@ -315,7 +192,8 @@ async function startUsageStats() {
 chrome.runtime.onStartup.addListener(startUsageStats);
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && (changes.gpc || changes.minimize)) applyNetworkRules();
+  if (area === 'sync' && changes.gpc) applyNetworkRules();
+  if (area === 'sync' && (changes.blockAds || changes.blockTrackers || changes.pausedSites)) applyAdblockSettings();
   if (area === 'sync' && changes.usageStats) {
     syncUninstallUrl(changes.usageStats.newValue);
     if (changes.usageStats.newValue) maybeSendHeartbeat();
@@ -325,7 +203,23 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.tabs.onRemoved.addListener(tabId => consentByTab.delete(tabId));
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Element-hiding requests come from every frame of every page; answer them
+  // before anything else and keep them out of the heartbeat path.
+  if (msg?.type === 'cosmetics') {
+    cosmeticsFor(msg, sender).then(sendResponse).catch(() => sendResponse({ active: false, scripts: [], styles: '', extended: [] }));
+    return true;
+  }
   maybeSendHeartbeat();
+  // Popup-only controls: ignore them when they come from a content script.
+  const fromPopup = sender.id === chrome.runtime.id && sender.url?.startsWith(chrome.runtime.getURL('popup.html'));
+  if (msg?.type === 'adblockStatus' && fromPopup) {
+    adblockStatus(msg.tabId, msg.url).then(sendResponse).catch(() => sendResponse(null));
+    return true;
+  }
+  if (msg?.type === 'setSitePaused' && fromPopup) {
+    setSitePaused(msg.hostname, msg.paused).then(() => sendResponse({ ok: true })).catch(e => sendResponse({ ok: false, message: e.message }));
+    return true;
+  }
   if (msg?.type === 'scan') {
     runScan(msg.tabId).then(sendResponse).catch(e => sendResponse({ ok: false, error: 'unexpected', message: e.message }));
     return true; // async response

@@ -1,11 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Caveatly",
-  "version": "0.1.3",
-  "description": "Reads the fine print for you — scans terms of service & privacy policies with AI and flags what matters.",
-  "permissions": ["storage", "scripting", "declarativeNetRequest", "favicon"],
-  "host_permissions": ["http://*/*", "https://*/*"],
-  "background": { "service_worker": "background.js" },
+  "version": "0.2.0",
+  "description": "Blocks ads and trackers on every site, and reads the fine print: flags what matters in terms of service and privacy policies.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "favicon",
+    "privacy",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -24,9 +37,55 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["consent.js", "pagescan.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "consent.js",
+        "pagescan.js"
+      ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content/custom-rules.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
     }
-  ]
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "easylist",
+        "enabled": true,
+        "path": "filters/easylist.json"
+      },
+      {
+        "id": "easyprivacy",
+        "enabled": true,
+        "path": "filters/easyprivacy.json"
+      },
+      {
+        "id": "reuters",
+        "enabled": true,
+        "path": "filters/reuters.json"
+      },
+      {
+        "id": "cookies",
+        "enabled": true,
+        "path": "filters/cookies.json"
+      },
+      {
+        "id": "annoyances",
+        "enabled": false,
+        "path": "filters/annoyances.json"
+      }
+    ]
+  }
 }

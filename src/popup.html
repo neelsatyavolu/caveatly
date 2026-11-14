@@ -31,6 +31,53 @@
     overflow-y: auto;
   }
   #root { width: 100%; }
+  ::selection { background: var(--marker-yellow); color: var(--ink-950); }
+  .fp-text-button {
+    flex: 0 0 auto; padding: 4px 6px; margin-right: -6px;
+    background: none; border: none; border-radius: var(--radius-sm); cursor: pointer;
+    color: var(--text-link); font: 600 12.5px var(--font-sans);
+  }
+  .fp-text-button:hover { color: var(--text-link-hover); text-decoration: underline; text-underline-offset: 3px; }
+  .fp-chip {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px 3px 9px;
+    background: var(--surface-card); border: 1px solid var(--border-default); border-radius: 999px;
+    color: var(--text-body); font: 500 12.5px var(--font-sans); cursor: pointer;
+  }
+  .fp-chip svg { color: var(--text-muted); }
+  .fp-chip:hover { border-color: var(--border-strong); }
+  .fp-chip:hover svg { color: var(--text-strong); }
+  .fp-chip:focus-visible,
+  .fp-text-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .fp-input {
+    flex: 1; min-width: 0; height: var(--control-md); padding: 0 12px;
+    border: 1px solid var(--border-default); border-radius: var(--radius-md);
+    background: var(--surface-card); color: var(--text-strong);
+    font: 13px var(--font-mono); outline: none;
+  }
+  .fp-input::placeholder { color: var(--text-muted); }
+  .fp-input:focus { border-color: var(--focus-ring); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .fp-segment {
+    cursor: pointer; padding: 5px 12px; min-height: 30px; border-radius: 999px;
+    border: 1px solid var(--border-default); background: var(--surface-card); color: var(--text-body);
+    font: 600 13px var(--font-sans);
+  }
+  .fp-segment:hover { border-color: var(--border-strong); }
+  .fp-segment[aria-checked="true"] { background: var(--teal-600); border-color: var(--teal-600); color: #fff; }
+  .fp-segment:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  .fp-rule {
+    display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; margin-top: 4px;
+    background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  }
+  .fp-rule code {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font: 12px var(--font-mono); color: var(--text-body);
+  }
+  .fp-icon-small {
+    display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 auto;
+    background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted);
+  }
+  .fp-icon-small:hover { background: var(--surface-sunken); color: var(--text-strong); }
+  .fp-icon-small:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
   .fp-progress { animation: fp-sweep 1.4s var(--ease-in-out) infinite alternate; }
   @keyframes fp-sweep {
     from { width: 12%; }

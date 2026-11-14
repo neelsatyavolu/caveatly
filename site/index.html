@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Caveatly — Read the fine print, finally</title>
-  <meta name="description" content="A free, open-source Chrome extension that scans Terms of Service and Privacy Policies with AI and flags what matters, graded A–F.">
-  <meta property="og:title" content="Caveatly — Read the fine print, finally">
-  <meta property="og:description" content="Free, open-source Chrome extension that flags what matters in Terms of Service and Privacy Policies.">
+  <title>Caveatly: ad blocker and fine-print reader for Chrome</title>
+  <meta name="description" content="A free, open-source Chrome extension that blocks ads and trackers on every site, guards your privacy, and reads Terms of Service and Privacy Policies for you, graded A–F.">
+  <meta property="og:title" content="Caveatly: ad blocker and fine-print reader for Chrome">
+  <meta property="og:description" content="Blocks ads and trackers on every site and flags what matters in Terms of Service and Privacy Policies. Free and open source.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://caveatly.xanom.co/">
   <meta property="og:image" content="https://caveatly.xanom.co/assets/og.png">
@@ -22,15 +22,16 @@
   <script defer src="https://analytics.n3el.dev/p.js"></script>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
   <header class="nav wrap">
     <a class="brand" href="/" aria-label="Caveatly home">
       <img src="/assets/icon128.png" alt="" width="30" height="30">
       <span>Caveatly</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#how">How it works</a>
+      <a href="#blocking">Ad blocking</a>
+      <a href="#fine-print">Fine print</a>
       <a href="#privacy">Privacy</a>
-      <a href="#install">Install</a>
       <a class="btn btn-ghost btn-sm" href="https://github.com/neelsatyavolu/caveatly">
         <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         GitHub
@@ -38,27 +39,26 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main">
     <section class="hero wrap">
       <div class="hero-copy">
-        <p class="eyebrow">Free &amp; open-source Chrome extension</p>
-        <h1>Read the fine print <span class="marker">before</span> you click “I agree.”</h1>
-        <p class="lede">Caveatly scans a site’s Terms of Service and Privacy Policy with AI, flags the clauses that matter, and grades the whole thing A–F — in a few seconds.</p>
+        <h1>Block the ads. Read the <span class="marker">fine print.</span></h1>
+        <p class="lede">Caveatly is a free Chrome extension that blocks ads and trackers on every site, turns on the privacy settings Chrome leaves off, and reads a site’s terms and privacy policy so you know what you agreed to.</p>
         <div class="cta">
           <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/caveatly/cijangcodogjeincjiejfaolpdekgimf">
             <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
             Add to Chrome
           </a>
-          <a class="btn btn-ghost" href="https://github.com/neelsatyavolu/caveatly">View source on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/neelsatyavolu/caveatly">Read the source</a>
         </div>
         <ul class="meta">
-          <li>MIT licensed</li>
+          <li>Free and open source</li>
           <li>No account</li>
-          <li>Bring your own free Gemini key</li>
+          <li>Ad blocking works the moment you install</li>
         </ul>
       </div>
 
-      <figure class="popup" aria-label="Example Caveatly report for a fictional site">
+      <figure class="popup" aria-label="The Caveatly toolbar popup on a fictional site">
         <div class="popup-head">
           <span class="popup-brand"><img src="/assets/icon128.png" alt="" width="22" height="22"> Caveatly</span>
         </div>
@@ -70,78 +70,131 @@
           <span class="grade">C</span>
           <span><span class="grade-title">Read carefully before you sign up.</span><small>2 concerns worth your attention.</small></span>
         </div>
-        <div class="stats">
-          <span class="stat"><b>6</b>Clauses</span>
-          <span class="stat stat-caution"><b>2</b>Caution</span>
-          <span class="stat stat-concern"><b>2</b>Concern</span>
-        </div>
         <ul class="flags">
-          <li class="flag concern"><span class="tag">Concern</span><b>Shares data with ad partners</b><small>Personal data may be passed to advertising and analytics companies.</small></li>
-          <li class="flag concern"><span class="tag">Concern</span><b>Broad license to your content</b><small>You grant a worldwide, royalty-free license to what you upload.</small></li>
-          <li class="flag caution"><span class="tag">Caution</span><b>Terms can change without notice</b><small>Continued use counts as accepting future changes.</small></li>
+          <li class="flag concern"><span class="tag">Concern</span><b>Shares data with ad partners</b></li>
+          <li class="flag concern"><span class="tag">Concern</span><b>Broad license to your content</b></li>
+          <li class="flag caution"><span class="tag">Caution</span><b>Terms can change without notice</b></li>
         </ul>
-        <figcaption>Example report for a fictional site.</figcaption>
+        <div class="popup-foot">
+          <span class="guard"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="num-tab">27</span> ads and trackers blocked</span>
+          <span class="pause">Pause on this site</span>
+        </div>
       </figure>
     </section>
 
-    <section id="how" class="section wrap">
-      <h2>How it works</h2>
+    <section id="blocking" class="section wrap split">
+      <div class="split-copy">
+        <h2>An ad blocker that works on every site</h2>
+        <p class="lede">Ads and trackers are stopped before they load, so pages are faster and quieter. Caveatly uses the same public filter lists as the big blockers, and nothing about your browsing leaves your computer to do it.</p>
+        <dl class="facts">
+          <div><dt>Ads and trackers</dt><dd>EasyList and EasyPrivacy rules, run by Chrome’s own blocking engine.</dd></div>
+          <div><dt>Video ads</dt><dd>Including the ones before YouTube videos.</dd></div>
+          <div><dt>Leftover ad boxes</dt><dd>Hidden, so pages close up where the ads were.</dd></div>
+          <div><dt>Sponsored results</dt><dd>Gone from Google, Amazon, Bing and DuckDuckGo, in every country.</dd></div>
+          <div><dt>Anything else</dt><dd>Right-click it and choose <b>Block element</b>.</dd></div>
+          <div><dt>A site you want to support</dt><dd>One click pauses blocking there.</dd></div>
+        </dl>
+      </div>
+
+      <figure class="page-mock" aria-label="Right-clicking a promoted post to block it">
+        <div class="mock-bar"><span></span><span></span><span></span><i>news.example/story</i></div>
+        <div class="mock-body">
+          <div class="mock-line w90"></div>
+          <div class="mock-line w70"></div>
+          <div class="mock-promo">
+            <span class="mock-label">Promoted</span>
+            <div class="mock-line w60"></div>
+            <div class="mock-line w40"></div>
+          </div>
+          <div class="mock-line w85"></div>
+          <div class="mock-line w75"></div>
+          <div class="mock-line w50"></div>
+          <ul class="mock-menu" aria-hidden="true">
+            <li>Open link in new tab</li>
+            <li>Copy link address</li>
+            <li class="sep"></li>
+            <li class="hit"><img src="/assets/icon32.png" alt="" width="16" height="16">Block element…</li>
+            <li>Inspect</li>
+          </ul>
+        </div>
+      </figure>
+    </section>
+
+    <section id="fine-print" class="section wrap">
+      <h2>The fine print, read for you</h2>
+      <p class="lede">Open Caveatly on any site and it finds the Terms of Service and Privacy Policy, reads every clause with Google Gemini, and flags what matters.</p>
       <ol class="steps">
         <li>
           <span class="num">1</span>
           <h3>Finds the legal pages</h3>
-          <p>On any site, Caveatly locates the Terms and Privacy links — HTML or PDF — or notices when you’re already reading one.</p>
+          <p>From footer links, common addresses like <code>/privacy</code>, or the page you are already reading. HTML and PDF both work.</p>
         </li>
         <li>
           <span class="num">2</span>
           <h3>Reads every clause</h3>
-          <p>The policy text goes to Google Gemini with your key. It returns plain-English flags, each with a clause reference and a verbatim quote.</p>
+          <p>The policy text goes to Gemini with your free API key. Each flag comes back in plain English with the clause and a verbatim quote.</p>
         </li>
         <li>
           <span class="num">3</span>
-          <h3>Grades what it found</h3>
-          <p>Each flag is sorted into three tiers and the report is graded A–F. Nothing hidden behind jargon.</p>
+          <h3>Grades the whole thing</h3>
+          <p>Flags are sorted into three tiers and the site gets a grade from A to F.</p>
         </li>
       </ol>
 
       <div class="tiers" aria-label="Risk tiers">
-        <div class="tier safe"><span class="tag">Safe</span><p>Reasonable, user-friendly terms — like letting you delete your data at any time.</p></div>
-        <div class="tier caution"><span class="tag">Caution</span><p>Worth knowing — like auto-renewing subscriptions or tracking cookies on by default.</p></div>
-        <div class="tier concern"><span class="tag">Concern</span><p>Read before agreeing — like selling your data or waiving your right to sue.</p></div>
+        <div class="tier safe"><span class="tag">Safe</span><p>Terms that favour you, like deleting your data whenever you ask.</p></div>
+        <div class="tier caution"><span class="tag">Caution</span><p>Worth knowing, like subscriptions that renew on their own.</p></div>
+        <div class="tier concern"><span class="tag">Concern</span><p>Read before agreeing, like selling your data or waiving your right to sue.</p></div>
       </div>
     </section>
 
-    <section id="privacy" class="section wrap privacy">
+    <section id="privacy" class="section wrap pair">
       <div>
-        <h2>Private by design</h2>
-        <p class="lede">No account, no tracking. The extension sends policy text to Google Gemini using a key you control, plus one anonymous daily usage ping you can switch off.</p>
+        <h2>Privacy guards, on by default</h2>
+        <p class="lede">Caveatly switches on the protections most people never find in Chrome’s settings. Each one is a single toggle if a site needs it off.</p>
       </div>
       <ul class="checks">
-        <li><b>Your key stays local.</b> Stored in <code>chrome.storage.local</code>, never synced or sent anywhere except Gemini.</li>
-        <li><b>Only policy text goes to Gemini.</b> Caveatly sends the Terms and Privacy pages it found, not your browsing history.</li>
-        <li><b>Anonymous usage stats.</b> A daily ping with a random install ID and version numbers, nothing about you. Turn it off in Settings.</li>
-        <li><b>Cookie guard.</b> Clicks “necessary only” or “reject all” on common consent banners.</li>
-        <li><b>Global Privacy Control.</b> Sends the <code>Sec-GPC: 1</code> signal to sites you visit.</li>
-        <li><b>Tracking-parameter stripping.</b> Optionally removes <code>utm_*</code>, <code>gclid</code>, <code>fbclid</code>, and similar tracking parameters.</li>
-        <li><b>Open source.</b> Every line is on GitHub for you to check.</li>
+        <li><b>Cookie banners answered.</b> Caveatly clicks “necessary only” or “reject all”, and hides the notices it can’t answer.</li>
+        <li><b>Fewer pop-ups, if you want.</b> Turn on <b>Hide annoyances</b> to drop newsletter pop-ups, share bars and chat bubbles.</li>
+        <li><b>Chrome’s ad features off.</b> Topics, Protected Audience and ad measurement stop profiling you for advertisers.</li>
+        <li><b>Clean links.</b> Tracking tags like <code>utm_*</code>, <code>gclid</code> and <code>fbclid</code> are removed, and redirect links from Google, Facebook and others go straight to where they point.</li>
+        <li><b>No IP leaks through WebRTC.</b> Video-call features can’t reveal your local network address.</li>
+        <li><b>No click pings.</b> Links can’t report your clicks back to a tracker.</li>
+        <li><b>Do-not-sell signal.</b> Every site gets the Global Privacy Control signal.</li>
+        <li><b>Third-party cookies.</b> One toggle blocks them everywhere. It’s off by default because some sign-ins rely on them.</li>
+        <li><b>Less sent to Google.</b> An optional toggle stops Chrome sending mistyped addresses and spell-check text to Google.</li>
       </ul>
     </section>
 
-    <section id="install" class="section wrap">
-      <h2>Install in two minutes</h2>
-      <p class="lede">Caveatly is on the Chrome Web Store.</p>
+    <section id="data" class="section wrap pair">
+      <div>
+        <h2>What leaves your browser</h2>
+        <p class="lede">Almost nothing. There is no account and no developer server in the path.</p>
+      </div>
+      <ul class="checks">
+        <li><b>Ad blocking is local.</b> The rules ship inside the extension and Chrome applies them. Caveatly never sees or logs what it blocks.</li>
+        <li><b>Only policy text goes to Gemini,</b> and only when you scan, with a key that stays on your device.</li>
+        <li><b>One anonymous ping a day</b> with a random install ID and version numbers. Turn it off in Settings.</li>
+        <li><b>Open source.</b> Every line is <a href="https://github.com/neelsatyavolu/caveatly">on GitHub</a>. The <a href="/privacy">privacy policy</a> has the details.</li>
+      </ul>
+    </section>
+
+    <section id="install" class="section wrap pair">
+      <div>
+        <h2>Install in two minutes</h2>
+        <p class="note">Prefer to build it yourself? <code>git clone</code> the repo, run <code>npm install &amp;&amp; npm run build</code>, and load <code>dist/</code>.</p>
+      </div>
       <ol class="install">
-        <li>Open <a href="https://chromewebstore.google.com/detail/caveatly/cijangcodogjeincjiejfaolpdekgimf">Caveatly on the Chrome Web Store</a> and click <b>Add to Chrome</b>.</li>
+        <li>Open <a href="https://chromewebstore.google.com/detail/caveatly/cijangcodogjeincjiejfaolpdekgimf">Caveatly on the Chrome Web Store</a> and click <b>Add to Chrome</b>. Ad blocking and the privacy guards start right away.</li>
         <li>Pin Caveatly to the toolbar.</li>
-        <li>Get a free API key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a>, then paste it into Caveatly → <b>Settings</b>.</li>
+        <li>To read the fine print, get a free API key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a> and paste it into Caveatly → <b>Settings</b>.</li>
       </ol>
-      <p class="note">Prefer to build from source? <code>git clone</code> the repo, run <code>npm install &amp;&amp; npm run build</code>, and load <code>dist/</code>.</p>
     </section>
   </main>
 
   <footer class="footer wrap">
-    <span>Caveatly · <a href="/privacy">Privacy</a> · <a href="https://github.com/neelsatyavolu/caveatly/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/neelsatyavolu/caveatly">GitHub</a></span>
-    <span class="muted">AI summaries can be wrong and are not legal advice.</span>
+    <span>Caveatly · <a href="/privacy">Privacy</a> · <a href="https://github.com/neelsatyavolu/caveatly#license">License</a> · <a href="https://github.com/neelsatyavolu/caveatly">GitHub</a></span>
+    <span class="muted">Filter lists: EasyList, EasyPrivacy, EasyList Cookie, Fanboy Annoyances and uBlock filters. AI summaries can be wrong and are not legal advice.</span>
   </footer>
 </body>
 </html>

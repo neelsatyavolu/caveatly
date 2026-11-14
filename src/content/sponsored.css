@@ -1,0 +1,22 @@
+/* Amazon: sponsored search results and sponsored video/brand blocks */
+.AdHolder,
+.s-result-item:has(.sbv-video-multi-product),
+.s-result-item:has(.sb-desktop),
+/* Google: top and bottom text ads, ads mixed into results */
+#tvcap,
+#tads,
+#tadsb,
+#bottomads,
+[data-text-ad],
+/* Bing: text ads above, beside and below the results */
+#b_results > li.b_ad,
+#b_context > li.b_ad,
+.b_adBottom,
+/* DuckDuckGo: ads and product ads (React results and the HTML-only version) */
+[data-layout="ad"],
+[data-layout$="_ads"],
+li[data-layout="products"],
+.results--ads,
+.result--ad {
+  display: none !important;
+}

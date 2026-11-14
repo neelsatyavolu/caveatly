@@ -1,0 +1,105 @@
+/* Ad slots on reuters.com homepage, section and story pages. */
+[data-testid="Leaderboard"],
+[data-testid="LeaderboardSpace"],
+[data-testid="ResponsiveAdSlot"],
+[data-testid="RefinitivPromoBar"],
+[data-testid="cf-quote-ticker-with-lseg"],
+[data-testid="story-clusterAd"],
+[class*="ad-slot-module__"],
+[class*="story-cluster-module__ad-reserved"],
+[class*="workspace-article-banner-module"],
+a:has(> [class*="workspace-article-banner-module"]),
+[id^="google_ads_iframe_"],
+[id^="reuters_desktop_"],
+[id^="reuters_mobile_"] {
+  display: none !important;
+}
+
+/* The sticky header is offset 30px to sit under the (now hidden) LSEG ticker bar. */
+[class*="site-header-module__inner-sticky"] {
+  top: 0 !important;
+}
+
+/*
+ * Layout fixes so the page closes up where ads were.
+ * Columns are only treated as ad columns when they hold no links.
+ */
+
+/*
+ * Top story clusters (desktop only; below 1024px Reuters stacks everything).
+ * Ad above a content module: from 1440px the ad has its own rows, so the module
+ * takes the whole right column. Below 1440px the ad row is auto-height and
+ * collapses on its own.
+ */
+@media (min-width: 1440px) {
+  ul[class*="story-cluster-module__two-modules"] > li[class*="story-cluster-module__extra-module"] {
+    grid-row: 1 / -1 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* The right column was only an ad: stories fill the width. */
+  ul[class*="story-cluster-module__ad-only"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: auto 1fr !important;
+    grid-template-areas:
+      "story-1 story-1 story-1"
+      "story-2 story-3 story-4" !important;
+  }
+  ul[class*="story-cluster-module__ad-only"]:has(> li[data-testid="StoryCard"]:nth-child(5)) {
+    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-areas:
+      "story-1 story-1 story-1 story-1"
+      "story-2 story-3 story-4 story-5" !important;
+  }
+  /* A lone hero (Reuters' "for-1" cluster) takes the whole row. */
+  ul[class*="story-cluster-module__ad-only"]:not(:has(> li[data-testid="StoryCard"]:nth-child(2))) {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    grid-template-areas: "story-1" !important;
+  }
+  ul[class*="story-cluster-module__ad-only"] > li[class*="story-cluster-module__story-1"] {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+/* Story body: inline ad wrappers keep 24px margins after the ad is hidden. */
+[data-testid="element"]:empty,
+[data-testid="element"]:has([data-testid="ResponsiveAdSlot"], [class*="ad-slot-module__"]):not(:has(p, img, a)) {
+  display: none !important;
+}
+
+/* At 1024-1439px the full-width hero would stack a huge image; put it beside the text. */
+@media (min-width: 1024px) and (max-width: 1439.9px) {
+  ul[class*="story-cluster-module__ad-only"] > li[class*="story-card-module__tpl-hero"]:not([class*="vertical-video"]) {
+    grid-template:
+      "kicker media"
+      "headline media"
+      "description media"
+      "date media" 1fr / 1fr 2fr !important;
+  }
+}
+
+/*
+ * Section feeds: drop a right column that holds no real links and let the
+ * feed use the full width. LSEG banner links count as ads, not content.
+ * (:has() cannot be nested, so the checks are written as :not(:has(...)).)
+ */
+[class*="content-layout-module__right-col"]:not(:has(a:not([href*="lseg.com"]))) {
+  display: none !important;
+}
+[class*="content-layout-module__three_and_one_column"]:has(> [class*="content-layout-module__right-col"]):not(:has(> [class*="content-layout-module__right-col"] a:not([href*="lseg.com"])))
+  > [class*="content-layout-module__left-col-item"] {
+  grid-column: 1 / -1 !important;
+}
+
+/* Story pages: drop the ad-only right rail and center the article column. */
+[data-testid="RegularArticleLayoutRightRail"]:not(:has(a:not([href*="lseg.com"]))) {
+  display: none !important;
+}
+@media (min-width: 1024px) {
+  [data-testid="MainContent"]:has(> [data-testid="RegularArticleLayoutRightRail"]):not(:has(> [data-testid="RegularArticleLayoutRightRail"] a:not([href*="lseg.com"])))
+    > main {
+    grid-column: 3 / span 8 !important;
+  }
+}

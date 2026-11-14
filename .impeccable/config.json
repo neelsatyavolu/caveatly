@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-11-13T22:43:58.067Z",
+        "reason": "Caveatly design system: warm paper surfaces are the incumbent brand tokens (src/styles/tokens/colors.css)"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "site/privacy.html"
+        ],
+        "createdAt": "2026-11-13T22:43:58.082Z",
+        "reason": "Caveatly design system: warm paper surfaces are the incumbent brand tokens (src/styles/tokens/colors.css)"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-11-13T22:43:58.097Z",
+        "reason": "False positive: detector misreads font shorthand with clamp(); rendered h1 is 41-66px, h2 30-40px vs 16px body"
+      }
+    ]
+  }
+}

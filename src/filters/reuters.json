@@ -1,0 +1,108 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "initiatorDomains": [
+        "reuters.com"
+      ],
+      "requestDomains": [
+        "pub.network",
+        "ad-delivery.net",
+        "html-load.cc",
+        "outerwords.com",
+        "dns-finder.com",
+        "btloader.com",
+        "doubleclick.net",
+        "googlesyndication.com",
+        "googletagservices.com",
+        "googleadservices.com",
+        "adtrafficquality.google",
+        "imasdk.googleapis.com",
+        "2mdn.net",
+        "amazon-adsystem.com",
+        "adsafeprotected.com",
+        "connatix.com",
+        "confiant-integrations.net",
+        "webcontentassessor.com",
+        "durationmedia.net",
+        "fastclick.net",
+        "33across.com",
+        "id5-sync.com",
+        "hadronid.net",
+        "a-mx.com",
+        "criteo.com",
+        "adsrvr.org",
+        "sharethrough.com",
+        "bidgx.com",
+        "bidswitch.net",
+        "3lift.com",
+        "postrelease.com",
+        "ccgateway.net",
+        "ad.gt",
+        "t13.io",
+        "yellowblue.io",
+        "media.net",
+        "pubgw.yahoo.com",
+        "gumgum.com",
+        "lijit.com",
+        "casalemedia.com",
+        "openx.net",
+        "yieldmo.com",
+        "smartadserver.com",
+        "rubiconproject.com",
+        "adnxs.com",
+        "kargo.com",
+        "pubmatic.com",
+        "indexww.com",
+        "1rx.io",
+        "streamrail.com",
+        "privacymanager.io",
+        "liadm.com",
+        "crwdcntrl.net",
+        "agkn.com",
+        "permutive.app",
+        "anonymised.io",
+        "mantis-intelligence.com",
+        "rapidedge.io",
+        "outbrain.com",
+        "taboola.com",
+        "dianomi.com",
+        "finebucket.info"
+      ],
+      "resourceTypes": [
+        "script",
+        "xmlhttprequest",
+        "sub_frame",
+        "image",
+        "media",
+        "stylesheet",
+        "font",
+        "ping",
+        "websocket",
+        "other"
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||reuters.com/pf/resources/dist/ads/",
+      "initiatorDomains": [
+        "reuters.com"
+      ],
+      "resourceTypes": [
+        "script",
+        "xmlhttprequest",
+        "other"
+      ]
+    }
+  }
+]

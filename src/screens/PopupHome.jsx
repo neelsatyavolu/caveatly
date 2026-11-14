@@ -1,9 +1,10 @@
 import React from 'react';
-import { ArrowRight, Cookie, Globe, KeyRound, ScanSearch, Settings, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Crosshair, Globe, KeyRound, ScanSearch, Settings, TriangleAlert } from 'lucide-react';
 import { Button } from '../components/Button.jsx';
 import { IconButton } from '../components/IconButton.jsx';
 import { StatPill } from '../components/StatPill.jsx';
 import { SiteIcon } from '../components/SiteIcon.jsx';
+import { ProtectionFooter } from '../components/ProtectionFooter.jsx';
 
 const GRADE_STYLE = {
   A: { tint: 'var(--safe-tint)', color: 'var(--safe-600)' },
@@ -24,7 +25,7 @@ function EmptyState({ icon, headline, body, action }) {
   );
 }
 
-export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, onScan, onOpenReport, onOpenSettings }) {
+export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onScan, onOpenReport, onOpenSettings, onOpenKeySettings, onPickElement, notice }) {
   const top = report ? report.flags.filter(f => f.tier === 'concern').slice(0, 3) : [];
   const topLabel = top.length ? 'Top concerns' : 'Top findings';
   const shown = top.length ? top : (report ? report.flags.slice(0, 3) : []);
@@ -41,8 +42,15 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
           </span>
           <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 18, color: 'var(--text-strong)', letterSpacing: '-0.02em' }}>Caveatly</span>
         </div>
-        <IconButton label="Settings" onClick={onOpenSettings}><Settings size={18} /></IconButton>
+        <div style={{ display: 'flex', gap: 2 }}>
+          {onPickElement && <IconButton label="Block an element on this page" onClick={onPickElement}><Crosshair size={18} /></IconButton>}
+          <IconButton label="Settings" onClick={onOpenSettings}><Settings size={18} /></IconButton>
+        </div>
       </div>
+
+      {notice && (
+        <div role="status" style={{ padding: '8px 16px', fontSize: 12.5, color: 'var(--text-body)', background: 'var(--surface-sunken)', borderBottom: '1px solid var(--border-subtle)' }}>{notice}</div>
+      )}
 
       {/* site + body */}
       <div style={{ padding: '16px 16px 4px' }}>
@@ -69,8 +77,8 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
           <EmptyState
             icon={<KeyRound size={26} />}
             headline="Connect your Gemini API key"
-            body="Caveatly uses Gemini to read terms & policies. Add your key once in settings to start scanning."
-            action={<Button onClick={onOpenSettings} iconRight={<ArrowRight size={17} />}>Open settings</Button>}
+            body="Caveatly reads terms and privacy policies with Gemini. Add a free key once to start scanning. Ad blocking already works without it."
+            action={<Button onClick={onOpenKeySettings || onOpenSettings} iconRight={<ArrowRight size={17} />}>Add your key</Button>}
           />
         )}
 
@@ -116,7 +124,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
 
             {shown.length > 0 && (
               <>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-faint)', margin: '4px 2px 8px' }}>{topLabel}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '4px 2px 8px' }}>{topLabel}</div>
                 <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 14 }}>
                   {shown.map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '9px 11px', borderLeft: `3px solid var(--${f.tier}-600)`, borderBottom: i < shown.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
@@ -137,11 +145,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
       </div>
 
-      {/* cookie footer */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px', marginTop: 8, background: cookieFooter.on ? 'var(--safe-tint)' : 'var(--surface-sunken)', borderTop: `1px solid ${cookieFooter.on ? 'var(--safe-border)' : 'var(--border-subtle)'}`, color: cookieFooter.on ? 'var(--safe-600)' : 'var(--text-muted)' }}>
-        <Cookie size={16} />
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{cookieFooter.text}</span>
-      </div>
+      <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} />
     </div>
   );
 }

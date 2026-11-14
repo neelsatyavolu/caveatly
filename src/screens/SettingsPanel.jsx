@@ -1,110 +1,82 @@
 import React from 'react';
-import { ArrowLeft, KeyRound } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { IconButton } from '../components/IconButton.jsx';
-import { Toggle } from '../components/Toggle.jsx';
-import { Button } from '../components/Button.jsx';
-import { PROVIDERS, DEFAULT_PROVIDER } from '../lib/settings.js';
+import { Section, SettingToggle } from './settings/Section.jsx';
+import { ApiKeyField } from './settings/ApiKeyField.jsx';
+import { ScanModePicker } from './settings/ScanModePicker.jsx';
+import { PausedSites, HiddenElements } from './settings/SiteLists.jsx';
 
-function Section({ title, children }) {
-  return (
-    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-faint)', marginBottom: 12 }}>{title}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>{children}</div>
-    </div>
-  );
+// Chrome applies privacy prefs asynchronously after a toggle is saved.
+const PRIVACY_STATUS_DELAY_MS = 300;
+const CHROME_PRIVACY_KEYS = ['disableAdApis', 'blockThirdPartyCookies', 'protectWebRtc', 'blockPings', 'hardenChromeServices'];
+
+function usePrivacyStatus(settings) {
+  const [status, setStatus] = React.useState({});
+  const deps = CHROME_PRIVACY_KEYS.map(k => settings[k]);
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      chrome.runtime.sendMessage({ type: 'browserPrivacy:status' })
+        .then(resp => { if (resp?.ok) setStatus(resp.status); })
+        .catch(() => {});
+    }, PRIVACY_STATUS_DELAY_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return status;
 }
 
-export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey, onBack }) {
-  const [draftKey, setDraftKey] = React.useState('');
-  const [saved, setSaved] = React.useState(false);
-  const preset = PROVIDERS[DEFAULT_PROVIDER];
-  const hasKey = Boolean(apiKeys.gemini);
-  const save = async () => {
-    if (!draftKey.trim()) return;
-    await onSaveApiKey(DEFAULT_PROVIDER, draftKey.trim());
-    setDraftKey('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
+/** Settings view. `focus` scrolls to a section on open (e.g. 'fine-print' from the API-key prompt). */
+export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey, onBack, focus }) {
+  const privacy = usePrivacyStatus(settings);
+  const toggle = (name, label, description) => (
+    <SettingToggle settings={settings} onSettingChange={onSettingChange} name={name} label={label} description={description} status={privacy[name]} />
+  );
+
+  React.useEffect(() => {
+    if (focus) document.getElementById(focus)?.scrollIntoView({ block: 'start' });
+  }, [focus]);
+
   return (
     <div style={{ width: '100%', background: 'var(--surface-page)', fontFamily: 'var(--font-sans)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: 'var(--surface-card)', borderBottom: '1px solid var(--border-subtle)' }}>
         <IconButton label="Back" onClick={onBack}><ArrowLeft size={18} /></IconButton>
-        <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-strong)' }}>Settings</span>
+        <h1 style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--text-strong)' }}>Settings</h1>
       </div>
 
-      <Section title="AI model">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <KeyRound size={15} style={{ color: hasKey ? 'var(--safe-600)' : 'var(--text-faint)' }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-strong)' }}>
-              {hasKey ? 'Gemini API key connected' : 'Gemini API key'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              type="password"
-              value={draftKey}
-              onChange={e => setDraftKey(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') save(); }}
-              placeholder={hasKey ? '•••••••• (replace key)' : preset.keyHint}
-              style={{
-                flex: 1, height: 'var(--control-md)', padding: '0 12px',
-                border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)',
-                background: 'var(--surface-card)', color: 'var(--text-strong)',
-                fontFamily: 'var(--font-mono)', fontSize: 13, outline: 'none', minWidth: 0,
-              }}
-              onFocus={e => { e.target.style.borderColor = 'var(--focus-ring)'; }}
-              onBlur={e => { e.target.style.borderColor = 'var(--border-default)'; }}
-            />
-            <Button size="md" variant="secondary" disabled={!draftKey.trim()} onClick={save}>{saved ? 'Saved' : 'Save'}</Button>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.45 }}>
-            Reads entire policies (1M context) · free at aistudio.google.com. Key stored only on this device.
-          </div>
-        </div>
+      <Section title="Ad blocking" id="ad-blocking">
+        {toggle('blockAds', 'Block ads', 'On every site, including YouTube video ads and sponsored search results.')}
+        {toggle('blockTrackers', 'Block trackers', 'Stops analytics and tracking requests.')}
+        {toggle('blockCookieNotices', 'Hide cookie notices', 'Hides cookie banners the cookie guard can’t answer.')}
+        {toggle('blockAnnoyances', 'Hide annoyances', 'Newsletter pop-ups, social share bars and chat bubbles. Can sometimes hide something you wanted.')}
+        <PausedSites sites={settings.pausedSites} onResume={site => onSettingChange('pausedSites', settings.pausedSites.filter(s => s !== site))} />
+        <HiddenElements />
       </Section>
 
-      <Section title="Cookies">
-        <Toggle checked={settings.block} onChange={v => onSettingChange('block', v)} label="Block non-essential cookies" description="Auto-accept necessary cookies only on every site." />
-        <Toggle checked={settings.autoReject} onChange={v => onSettingChange('autoReject', v)} label="Dismiss consent banners" description="Reject optional tracking and close the popup for you." />
+      <Section title="Privacy" id="privacy">
+        {toggle('disableAdApis', 'Turn off Chrome’s ad features', 'Stops Topics, Protected Audience and ad measurement from profiling you.')}
+        {toggle('unwrapLinks', 'Skip tracking redirects', 'Links through google.com/url, Facebook, Reddit and similar go straight to the real site.')}
+        {toggle('minimize', 'Remove tracking from links', 'Strips tags like utm_source, gclid and fbclid. Sign-in and checkout pages are left alone.')}
+        {toggle('protectWebRtc', 'Hide your IP from WebRTC', 'Video-call features can’t reveal your local network address.')}
+        {toggle('blockPings', 'Block link-click pings', 'Sites can’t report which links you click.')}
+        {toggle('gpc', 'Send Global Privacy Control', 'Tells sites not to sell or share your data.')}
+        {toggle('blockThirdPartyCookies', 'Block third-party cookies', 'Stops other sites’ cookies on the pages you visit. Some sign-ins may break.')}
+        {toggle('hardenChromeServices', 'Limit what Chrome sends to Google', 'Mistyped addresses, spell-check text and page preloading. Pages may open a little slower.')}
       </Section>
-      <Section title="Privacy enhancements">
-        <Toggle checked={settings.gpc} onChange={v => onSettingChange('gpc', v)} label="Send Global Privacy Control" description="Tell sites not to sell or share your data." />
-        <Toggle checked={settings.minimize} onChange={v => onSettingChange('minimize', v)} label="Strip tracking parameters" description="Clean utm_ and click-id tags from links you open." />
+
+      <Section title="Cookie guard" id="cookies">
+        {toggle('block', 'Accept necessary cookies only', 'Picks “necessary only” on cookie banners when it’s offered.')}
+        {toggle('autoReject', 'Reject optional cookies', 'Clicks “reject all” and closes the banner for you.')}
       </Section>
-      <Section title="Scanning">
-        <div>
-          <div style={{ fontFamily: 'var(--font-sans)', fontWeight: 'var(--fw-medium)', fontSize: 'var(--fs-body)', color: 'var(--text-strong)' }}>When Caveatly finds terms or a privacy policy</div>
-          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginTop: 1, marginBottom: 9 }}>
-            Only on sites you have not scanned yet. Opening the toolbar never starts a scan by itself.
-            {' '}
-            {settings.pageScan === 'auto'
-              ? 'Auto-scan is on — Caveatly will scan and open the report.'
-              : settings.pageScan === 'ask'
-                ? 'Ask first — a small toast offers to scan.'
-                : 'Off — no on-page prompts or auto-scans.'}
-          </div>
-          <div style={{ display: 'flex', gap: 7 }}>
-            {[['off', 'Off'], ['ask', 'Ask first'], ['auto', 'Auto-scan']].map(([value, label]) => {
-              const active = settings.pageScan === value;
-              return (
-                <button key={value} onClick={() => onSettingChange('pageScan', value)} style={{
-                  cursor: 'pointer', padding: '5px 12px', borderRadius: 999,
-                  border: '1px solid ' + (active ? 'var(--teal-600)' : 'var(--border-default)'),
-                  background: active ? 'var(--teal-600)' : 'var(--surface-card)',
-                  color: active ? '#fff' : 'var(--text-body)',
-                  fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 13,
-                }}>{label}</button>
-              );
-            })}
-          </div>
-        </div>
+
+      <Section title="Fine print" id="fine-print">
+        <ApiKeyField apiKeys={apiKeys} onSaveApiKey={onSaveApiKey} />
+        <ScanModePicker value={settings.pageScan} onChange={mode => onSettingChange('pageScan', mode)} />
       </Section>
-      <Section title="Usage stats">
-        <Toggle checked={settings.usageStats} onChange={v => onSettingChange('usageStats', v)} label="Share anonymous usage stats" description="Sends a daily ping with a random install ID, extension version and Chrome version. No personal data." />
+
+      <Section title="Usage stats" id="usage">
+        {toggle('usageStats', 'Share anonymous usage stats', 'A daily ping with a random install ID, extension version and Chrome version. No personal data.')}
       </Section>
-      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>Caveatly · v0.1.2 · settings sync locally</div>
+      <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Caveatly v{chrome.runtime.getManifest().version} · settings sync with Chrome</div>
     </div>
   );
 }
