@@ -96,6 +96,26 @@ via `chrome.runtime.setUninstallURL`. Turn it off with **Settings → Share anon
 usage stats**: nothing is sent and the uninstall URL is cleared. The website counts
 page views with a cookieless script. Full details: https://caveatly.xanom.co/privacy
 
+## Embedding Caveatly in another browser
+
+A host that bundles Caveatly (such as the Perch browser) can switch parts of it off by
+adding a block to the packaged `manifest.json`:
+
+```json
+"caveatly_embed": { "telemetry": false, "blocker": false }
+```
+
+- `telemetry: false` — no daily usage ping, no uninstall URL, and no **Usage stats** setting.
+- `blocker: false` — Caveatly is the fine-print grader only: no ad, tracker, cookie-notice or
+  annoyance blocking, no scriptlets or element hiding, no right-click picker, no link cleaning,
+  no Global Privacy Control header, no cookie-banner clicking and no `chrome.privacy` changes.
+  Those settings are hidden. The host should also set every `declarative_net_request.rule_resources`
+  entry to `"enabled": false`, so no ruleset is active before the service worker first runs.
+
+`src/lib/embed.js` reads the block synchronously with `chrome.runtime.getManifest()`, so it holds
+from the first service-worker wake. Installs without the block behave normally.
+`npm run test:embed` checks both cases.
+
 ## Tests
 
 ```bash
@@ -108,6 +128,7 @@ npm run test:browser-privacy   # chrome.privacy prefs and ping blocking
 npm run test:link-cleaning     # tracking params and redirect unwrapping (unit + e2e)
 npm run test:custom-rules      # right-click picker and saved hiding rules
 npm run test:scan-coverage     # scan pipeline on offline fixtures (add -- --live for real sites)
+npm run test:embed             # caveatly_embed: grader-only, no-telemetry builds
 ```
 
 Visits github.com, stripe.com, and en.wikipedia.org; verifies extraction finds real

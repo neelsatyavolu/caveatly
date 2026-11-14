@@ -1,3 +1,5 @@
+import { applyEmbed } from './embed.js';
+
 // Shared settings model. Preferences live in chrome.storage.sync; API keys stay
 // in chrome.storage.local (never synced off this machine).
 export const DEFAULT_SETTINGS = {
@@ -40,7 +42,8 @@ export const DEFAULT_PROVIDER = 'gemini';
 
 export async function getSettings() {
   const stored = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-  return { ...DEFAULT_SETTINGS, ...stored };
+  // Embedded builds force some features off regardless of storage (lib/embed.js).
+  return applyEmbed({ ...DEFAULT_SETTINGS, ...stored });
 }
 
 export async function saveSettings(patch) {

@@ -7,6 +7,8 @@
 // Custom rules apply even when "Block ads" is off or the site is paused: the
 // user picked each element by hand, so the general switches don't cover them.
 
+import { BLOCKER_ALLOWED } from './embed.js';
+
 const STORAGE_KEY = 'customRules';
 const MENU_ID = 'caveatly-block-element';
 const PICKER_FILES = ['content/picker-selector.js', 'content/picker.js'];
@@ -174,7 +176,7 @@ const fromWebPage = sender => sender.id === chrome.runtime.id && Boolean(hostOf(
 
 // Content-script messages, then UI messages (extension pages only).
 const HANDLERS = {
-  'customRules:apply': { allowed: fromWebPage, run: (msg, sender) => applyToFrame(sender) },
+  'customRules:apply': { allowed: fromWebPage, run: (msg, sender) => (BLOCKER_ALLOWED ? applyToFrame(sender) : { ok: true }) },
   'customRules:add': { allowed: fromWebPage, run: addFromPicker },
   'customRules:list': { allowed: fromExtensionPage, run: async msg => ({ ok: true, rules: await listCustomRules(msg.site) }) },
   'customRules:remove': { allowed: fromExtensionPage, run: async msg => ({ ok: true, removed: await removeCustomRule(msg.id) }) },
@@ -182,6 +184,7 @@ const HANDLERS = {
   'customRules:startPicker': {
     allowed: fromExtensionPage,
     run: async msg => {
+      if (!BLOCKER_ALLOWED) return { ok: false, message: 'Element blocking is turned off in this build.' };
       await startPicker(msg.tabId, msg.frameId ?? 0, msg.target ?? null);
       return { ok: true };
     },
@@ -198,6 +201,12 @@ function onMessage(msg, sender, sendResponse) {
 }
 
 export function initCustomRules() {
+  // Embedded grader-only builds have no blocking, so no "Block element…" menu.
+  if (!BLOCKER_ALLOWED) {
+    chrome.runtime.onInstalled.addListener(() => chrome.contextMenus.remove(MENU_ID, () => void chrome.runtime.lastError));
+    chrome.runtime.onMessage.addListener(onMessage);
+    return;
+  }
   chrome.runtime.onInstalled.addListener(createMenu);
   chrome.contextMenus.onClicked.addListener(onMenuClick);
   chrome.runtime.onMessage.addListener(onMessage);

@@ -5,6 +5,7 @@ import { Section, SettingToggle } from './settings/Section.jsx';
 import { ApiKeyField } from './settings/ApiKeyField.jsx';
 import { ScanModePicker } from './settings/ScanModePicker.jsx';
 import { PausedSites, HiddenElements } from './settings/SiteLists.jsx';
+import { BLOCKER_ALLOWED, TELEMETRY_ALLOWED } from '../lib/embed.js';
 
 // Chrome applies privacy prefs asynchronously after a toggle is saved.
 const PRIVACY_STATUS_DELAY_MS = 300;
@@ -43,6 +44,7 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
         <h1 style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--text-strong)' }}>Settings</h1>
       </div>
 
+      {BLOCKER_ALLOWED && (<>
       <Section title="Ad blocking" id="ad-blocking">
         {toggle('blockAds', 'Block ads', 'On every site, including YouTube video ads and sponsored search results.')}
         {toggle('blockTrackers', 'Block trackers', 'Stops analytics and tracking requests.')}
@@ -67,15 +69,18 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
         {toggle('block', 'Accept necessary cookies only', 'Picks “necessary only” on cookie banners when it’s offered.')}
         {toggle('autoReject', 'Reject optional cookies', 'Clicks “reject all” and closes the banner for you.')}
       </Section>
+      </>)}
 
       <Section title="Fine print" id="fine-print">
         <ApiKeyField apiKeys={apiKeys} onSaveApiKey={onSaveApiKey} />
         <ScanModePicker value={settings.pageScan} onChange={mode => onSettingChange('pageScan', mode)} />
       </Section>
 
-      <Section title="Usage stats" id="usage">
-        {toggle('usageStats', 'Share anonymous usage stats', 'A daily ping with a random install ID, extension version and Chrome version. No personal data.')}
-      </Section>
+      {TELEMETRY_ALLOWED && (
+        <Section title="Usage stats" id="usage">
+          {toggle('usageStats', 'Share anonymous usage stats', 'A daily ping with a random install ID, extension version and Chrome version. No personal data.')}
+        </Section>
+      )}
       <div style={{ padding: '13px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Caveatly v{chrome.runtime.getManifest().version} · settings sync with Chrome</div>
     </div>
   );

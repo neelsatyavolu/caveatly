@@ -77,6 +77,9 @@ async function applyRules(settings) {
 
 async function applyUnwrapScript(enabled) {
   const existing = await chrome.scripting.getRegisteredContentScripts({ ids: [UNWRAP_SCRIPT_ID] });
+  // Already in the wanted state: leave it, so pages loading during an unrelated
+  // settings change (e.g. minimize) never miss the script.
+  if (existing.length && enabled) return;
   if (existing.length) await chrome.scripting.unregisterContentScripts({ ids: [UNWRAP_SCRIPT_ID] });
   if (!enabled) return;
   await chrome.scripting.registerContentScripts([{

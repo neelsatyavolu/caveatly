@@ -1,6 +1,6 @@
 {
   "name": "caveatly",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Caveatly — Chrome extension that blocks ads and trackers and reads the fine print for you.",
   "license": "MIT",
@@ -18,7 +18,8 @@
     "test:link-cleaning": "node tests/link-cleaning-unit.mjs && node tests/link-cleaning.mjs",
     "test:custom-rules": "node tests/custom-rules.mjs",
     "test:adblock-lists": "node tests/adblock-lists.mjs",
-    "test:scan-coverage": "node tests/scan-coverage.mjs"
+    "test:scan-coverage": "node tests/scan-coverage.mjs",
+    "test:embed": "node tests/embed.mjs"
   },
   "dependencies": {
     "@ghostery/adblocker": "2.20.3",

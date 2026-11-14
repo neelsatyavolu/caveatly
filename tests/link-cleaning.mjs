@@ -101,7 +101,8 @@ try {
   check(s.rules.includes(4110), 'unwrap fallback rules installed');
   console.log('\n— minimize off');
   await sw.evaluate(() => chrome.storage.sync.set({ minimize: false }));
-  s = await waitForState(sw, x => !x.rules.includes(1002));
+  // Changing minimize resyncs link cleaning; wait for the unwrap script to be back too.
+  s = await waitForState(sw, x => !x.rules.includes(1002) && x.scripts.includes('linkclean-unwrap'));
   check(!s.rules.includes(1002), 'no parameter-stripping rule while minimize is off');
 
   let hit = await clickAndLand(page, '#google');

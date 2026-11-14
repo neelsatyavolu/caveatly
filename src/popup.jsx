@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { PopupHome } from './screens/PopupHome.jsx';
 import { ReportPanel } from './screens/ReportPanel.jsx';
 import { SettingsPanel } from './screens/SettingsPanel.jsx';
+import { BLOCKER_ALLOWED } from './lib/embed.js';
 import { getSettings, saveSettings, getApiConfig, saveApiKey, DEFAULT_SETTINGS } from './lib/settings.js';
 
 // The popup normally targets the active tab. After an on-page scan the service
@@ -151,13 +152,14 @@ function App() {
       site={site}
       siteUrl={tab?.url}
       cookieFooter={cookieFooterFor(settings, consentAction)}
-      adblock={adblock}
+      adblock={BLOCKER_ALLOWED ? adblock : null}
+      showProtection={BLOCKER_ALLOWED}
       onTogglePause={onTogglePause}
       onScan={() => scan()}
       onOpenReport={() => setView('report')}
       onOpenSettings={() => { setSettingsFocus(null); setView('settings'); }}
       onOpenKeySettings={() => { setSettingsFocus('fine-print'); setView('settings'); }}
-      onPickElement={tab ? onPickElement : null}
+      onPickElement={tab && BLOCKER_ALLOWED ? onPickElement : null}
       notice={notice}
     />
   );

@@ -4,6 +4,7 @@
 // keys or anything about the user. At most one attempt per UTC day; failures
 // are silent and never retried.
 import { getSettings } from './settings.js';
+import { TELEMETRY_ALLOWED } from './embed.js';
 
 export const HEARTBEAT_URL = 'https://analytics.n3el.dev/v1/heartbeat';
 export const UNINSTALL_URL = 'https://analytics.n3el.dev/u/caveatly';
@@ -39,13 +40,14 @@ async function buildPayload() {
 /** Uninstall page counts the uninstall; cleared when the user opts out. */
 export async function syncUninstallUrl(enabled) {
   try {
-    await chrome.runtime.setUninstallURL(enabled ? UNINSTALL_URL : '');
+    await chrome.runtime.setUninstallURL(enabled && TELEMETRY_ALLOWED ? UNINSTALL_URL : '');
   } catch {
     // best effort
   }
 }
 
 async function sendIfDue(now) {
+  if (!TELEMETRY_ALLOWED) return false; // embedded build: never send, regardless of storage
   const { usageStats } = await getSettings();
   if (!usageStats) return false;
   const today = utcDay(now);

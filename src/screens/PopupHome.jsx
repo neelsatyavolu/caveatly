@@ -25,7 +25,7 @@ function EmptyState({ icon, headline, body, action }) {
   );
 }
 
-export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onScan, onOpenReport, onOpenSettings, onOpenKeySettings, onPickElement, notice }) {
+export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onScan, onOpenReport, onOpenSettings, onOpenKeySettings, onPickElement, notice, showProtection = true }) {
   const top = report ? report.flags.filter(f => f.tier === 'concern').slice(0, 3) : [];
   const topLabel = top.length ? 'Top concerns' : 'Top findings';
   const shown = top.length ? top : (report ? report.flags.slice(0, 3) : []);
@@ -77,7 +77,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
           <EmptyState
             icon={<KeyRound size={26} />}
             headline="Connect your Gemini API key"
-            body="Caveatly reads terms and privacy policies with Gemini. Add a free key once to start scanning. Ad blocking already works without it."
+            body={`Caveatly reads terms and privacy policies with Gemini. Add a free key once to start scanning.${showProtection ? ' Ad blocking already works without it.' : ''}`}
             action={<Button onClick={onOpenKeySettings || onOpenSettings} iconRight={<ArrowRight size={17} />}>Add your key</Button>}
           />
         )}
@@ -145,7 +145,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
       </div>
 
-      <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} />
+      {showProtection && <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} />}
     </div>
   );
 }
