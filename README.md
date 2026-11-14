@@ -111,6 +111,12 @@ adding a block to the packaged `manifest.json`:
   no Global Privacy Control header, no cookie-banner clicking and no `chrome.privacy` changes.
   Those settings are hidden. The host should also set every `declarative_net_request.rule_resources`
   entry to `"enabled": false`, so no ruleset is active before the service worker first runs.
+- `hide: ["gpc", "cookieGuard"]` — keeps the blocker but drops single features the host already
+  provides: `gpc` turns off the Global Privacy Control header, `cookieGuard` turns off
+  cookie-banner clicking. Both are hidden from Settings.
+
+People can switch the whole ad blocker off and on with the **Ad blocker** switch at the top of
+Settings (or **Turn on** in the popup). Their choices for each list are kept while it is off.
 
 `src/lib/embed.js` reads the block synchronously with `chrome.runtime.getManifest()`, so it holds
 from the first service-worker wake. Installs without the block behave normally.

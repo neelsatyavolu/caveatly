@@ -5,7 +5,7 @@ import { Section, SettingToggle } from './settings/Section.jsx';
 import { ApiKeyField } from './settings/ApiKeyField.jsx';
 import { ScanModePicker } from './settings/ScanModePicker.jsx';
 import { PausedSites, HiddenElements } from './settings/SiteLists.jsx';
-import { BLOCKER_ALLOWED, TELEMETRY_ALLOWED } from '../lib/embed.js';
+import { BLOCKER_ALLOWED, TELEMETRY_ALLOWED, featureAllowed } from '../lib/embed.js';
 
 // Chrome applies privacy prefs asynchronously after a toggle is saved.
 const PRIVACY_STATUS_DELAY_MS = 300;
@@ -46,10 +46,13 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
 
       {BLOCKER_ALLOWED && (<>
       <Section title="Ad blocking" id="ad-blocking">
+        {toggle('adblockOn', 'Ad blocker', 'Blocks ads, trackers and cookie notices. Turning it off keeps your choices for each list.')}
+        {settings.adblockOn && (<>
         {toggle('blockAds', 'Block ads', 'On every site, including YouTube video ads and sponsored search results.')}
         {toggle('blockTrackers', 'Block trackers', 'Stops analytics and tracking requests.')}
         {toggle('blockCookieNotices', 'Hide cookie notices', 'Hides cookie banners the cookie guard can’t answer.')}
         {toggle('blockAnnoyances', 'Hide annoyances', 'Newsletter pop-ups, social share bars and chat bubbles. Can sometimes hide something you wanted.')}
+        </>)}
         <PausedSites sites={settings.pausedSites} onResume={site => onSettingChange('pausedSites', settings.pausedSites.filter(s => s !== site))} />
         <HiddenElements />
       </Section>
@@ -60,15 +63,17 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
         {toggle('minimize', 'Remove tracking from links', 'Strips tags like utm_source, gclid and fbclid. Sign-in and checkout pages are left alone.')}
         {toggle('protectWebRtc', 'Hide your IP from WebRTC', 'Video-call features can’t reveal your local network address.')}
         {toggle('blockPings', 'Block link-click pings', 'Sites can’t report which links you click.')}
-        {toggle('gpc', 'Send Global Privacy Control', 'Tells sites not to sell or share your data.')}
+        {featureAllowed('gpc') && toggle('gpc', 'Send Global Privacy Control', 'Tells sites not to sell or share your data.')}
         {toggle('blockThirdPartyCookies', 'Block third-party cookies', 'Stops other sites’ cookies on the pages you visit. Some sign-ins may break.')}
         {toggle('hardenChromeServices', 'Limit what Chrome sends to Google', 'Mistyped addresses, spell-check text and page preloading. Pages may open a little slower.')}
       </Section>
 
+      {featureAllowed('cookieGuard') && (
       <Section title="Cookie guard" id="cookies">
         {toggle('block', 'Accept necessary cookies only', 'Picks “necessary only” on cookie banners when it’s offered.')}
         {toggle('autoReject', 'Reject optional cookies', 'Clicks “reject all” and closes the banner for you.')}
       </Section>
+      )}
       </>)}
 
       <Section title="Fine print" id="fine-print">

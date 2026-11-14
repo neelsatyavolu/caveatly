@@ -34,12 +34,12 @@ const server = createServer((req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const PORT = server.address().port;
 
-function embeddedCopy() {
+function embeddedCopy(embed = { telemetry: false, blocker: false }) {
   const dir = mkdtempSync(path.join(tmpdir(), 'caveatly-embed-'));
   cpSync(DIST, dir, { recursive: true });
   const manifestPath = path.join(dir, 'manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  writeFileSync(manifestPath, JSON.stringify({ ...manifest, caveatly_embed: { telemetry: false, blocker: false } }));
+  writeFileSync(manifestPath, JSON.stringify({ ...manifest, caveatly_embed: embed }));
   return dir;
 }
 
@@ -83,11 +83,13 @@ async function inspect({ context, sw }) {
   state.adFooter = await popup.getByText(/blocked|Blocking ads|Ad blocker/).count();
   await popup.getByLabel('Settings').click();
   await popup.waitForTimeout(400);
+  state.labels = await popup.$$eval('label, [role="switch"]', els => els.map(e => e.textContent.trim()));
   state.headings = await popup.$$eval('h2', els => els.map(e => e.textContent.trim().toLowerCase()));
   return state;
 }
 
 const embedDir = embeddedCopy();
+const hideDir = embeddedCopy({ telemetry: false, hide: ['gpc', 'cookieGuard'] });
 try {
   console.log('— embedded build (telemetry:false, blocker:false)');
   const embedded = await launch(embedDir);
@@ -113,9 +115,21 @@ try {
   check(n.heartbeatDay !== null, 'usage ping attempted (default on)');
   check(!n.adRequested && !n.adShown, 'ads blocked');
   check(n.headings.includes('ad blocking') && n.headings.includes('usage stats'), 'all settings sections shown');
+
+  console.log('\n— blocker on, host hides GPC and cookie guard');
+  const hidden = await launch(hideDir);
+  const h = await inspect(hidden);
+  await hidden.context.close();
+  rmSync(hidden.profile, { recursive: true, force: true });
+  check(h.rulesets.includes('easylist') && !h.adRequested && !h.adShown, 'ads blocked');
+  check(!h.dynamicRules.includes(1001), `no GPC header rule (${h.dynamicRules.join(', ')})`);
+  check(h.headings.includes('ad blocking') && !h.headings.includes('cookie guard'), `cookie guard hidden (${h.headings.join(', ')})`);
+  check(h.labels.some(l => /Block ads/.test(l)) && !h.labels.some(l => /Global Privacy Control/.test(l)), 'GPC toggle hidden, other toggles shown');
+  check(h.heartbeatDay === null, 'no usage ping attempted');
 } finally {
   server.close();
   rmSync(embedDir, { recursive: true, force: true });
+  rmSync(hideDir, { recursive: true, force: true });
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : '\nall embed checks passed');

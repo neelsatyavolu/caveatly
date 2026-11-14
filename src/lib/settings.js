@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS = {
   // 'auto' — scan immediately when terms/privacy are found on an unscanned domain
   pageScan: 'ask',
   usageStats: true,  // daily anonymous heartbeat to analytics.n3el.dev (see lib/heartbeat.js)
+  adblockOn: true,      // master switch for the ad blocker: off turns the four lists below off without losing them
   blockAds: true,       // EasyList network rules + element hiding, sponsored results, Reuters
   blockTrackers: true,  // EasyPrivacy network rules
   pausedSites: [],      // hostnames (no www.) where ad and tracker blocking is off
@@ -40,10 +41,21 @@ export const PROVIDERS = {
 };
 export const DEFAULT_PROVIDER = 'gemini';
 
-export async function getSettings() {
+// What the ad blocker master switch (adblockOn) turns off.
+export const ADBLOCK_KEYS = ['blockAds', 'blockTrackers', 'blockCookieNotices', 'blockAnnoyances'];
+
+/** Stored settings as the settings screen shows them (each toggle's own value). */
+export async function getStoredSettings() {
   const stored = await chrome.storage.sync.get(DEFAULT_SETTINGS);
   // Embedded builds force some features off regardless of storage (lib/embed.js).
   return applyEmbed({ ...DEFAULT_SETTINGS, ...stored });
+}
+
+/** Settings in effect: with the ad blocker switched off, its lists read as off. */
+export async function getSettings() {
+  const settings = await getStoredSettings();
+  if (settings.adblockOn) return settings;
+  return ADBLOCK_KEYS.reduce((acc, key) => ({ ...acc, [key]: false }), settings);
 }
 
 export async function saveSettings(patch) {

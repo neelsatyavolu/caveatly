@@ -3,7 +3,9 @@
 // ("necessary only" / "reject all"). Reports what it did to the background.
 (async () => {
   // Embedded builds with "caveatly_embed": { "blocker": false } leave consent banners alone.
-  if (chrome.runtime.getManifest().caveatly_embed?.blocker === false) return;
+  // Hosts with "hide": ["cookieGuard"] handle banners themselves.
+  const embed = chrome.runtime.getManifest().caveatly_embed;
+  if (embed?.blocker === false || (Array.isArray(embed?.hide) && embed.hide.includes('cookieGuard'))) return;
   const settings = await chrome.storage.sync.get({ block: true, autoReject: true });
   if (!settings.block && !settings.autoReject) return;
 

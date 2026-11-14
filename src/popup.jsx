@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { PopupHome } from './screens/PopupHome.jsx';
 import { ReportPanel } from './screens/ReportPanel.jsx';
 import { SettingsPanel } from './screens/SettingsPanel.jsx';
-import { BLOCKER_ALLOWED } from './lib/embed.js';
-import { getSettings, saveSettings, getApiConfig, saveApiKey, DEFAULT_SETTINGS } from './lib/settings.js';
+import { BLOCKER_ALLOWED, featureAllowed } from './lib/embed.js';
+import { getStoredSettings, saveSettings, getApiConfig, saveApiKey, DEFAULT_SETTINGS } from './lib/settings.js';
 
 // The popup normally targets the active tab. After an on-page scan the service
 // worker sets focusTabId so we bind to the scanned site even if focus moved.
@@ -66,7 +66,7 @@ function App() {
   React.useEffect(() => {
     (async () => {
       const [loadedSettings, apiConfig, targetTab] = await Promise.all([
-        getSettings(), getApiConfig(), findTargetTab(),
+        getStoredSettings(), getApiConfig(), findTargetTab(),
       ]);
       const key = apiConfig.apiKey;
       setSettings(loadedSettings);
@@ -110,7 +110,18 @@ function App() {
     refresh();
     const timer = setInterval(refresh, ADBLOCK_REFRESH_MS);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [tab, settings.blockAds, settings.blockTrackers, settings.pausedSites]);
+  }, [tab, settings.adblockOn, settings.blockAds, settings.blockTrackers, settings.pausedSites]);
+
+  // Turning the ad blocker on from the footer. If every list was switched off
+  // one by one, bring back ads and trackers so the switch actually blocks.
+  const onTurnOnAdblock = async () => {
+    const listsOff = !settings.blockAds && !settings.blockTrackers && !settings.blockCookieNotices && !settings.blockAnnoyances;
+    const patch = listsOff ? { adblockOn: true, blockAds: true, blockTrackers: true } : { adblockOn: true };
+    setSettings(prev => ({ ...prev, ...patch }));
+    await saveSettings(patch);
+    setAdblock(prev => ({ ...prev, enabled: true, paused: false, blocked: null }));
+    if (tab) chrome.tabs.reload(tab.id).catch(() => {});
+  };
 
   // Pausing takes effect on the next page load, so reload the tab right away.
   const onTogglePause = async () => {
@@ -151,10 +162,11 @@ function App() {
       errorMessage={errorMessage}
       site={site}
       siteUrl={tab?.url}
-      cookieFooter={cookieFooterFor(settings, consentAction)}
+      cookieFooter={featureAllowed('cookieGuard') ? cookieFooterFor(settings, consentAction) : null}
       adblock={BLOCKER_ALLOWED ? adblock : null}
       showProtection={BLOCKER_ALLOWED}
       onTogglePause={onTogglePause}
+      onTurnOnAdblock={onTurnOnAdblock}
       onScan={() => scan()}
       onOpenReport={() => setView('report')}
       onOpenSettings={() => { setSettingsFocus(null); setView('settings'); }}

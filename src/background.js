@@ -193,7 +193,7 @@ chrome.runtime.onStartup.addListener(startUsageStats);
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.gpc) applyNetworkRules();
-  if (area === 'sync' && (changes.blockAds || changes.blockTrackers || changes.pausedSites)) applyAdblockSettings();
+  if (area === 'sync' && (changes.adblockOn || changes.blockAds || changes.blockTrackers || changes.pausedSites)) applyAdblockSettings();
   if (area === 'sync' && changes.usageStats) {
     syncUninstallUrl(changes.usageStats.newValue);
     if (changes.usageStats.newValue) maybeSendHeartbeat();

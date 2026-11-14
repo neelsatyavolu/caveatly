@@ -25,7 +25,7 @@ function EmptyState({ icon, headline, body, action }) {
   );
 }
 
-export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onScan, onOpenReport, onOpenSettings, onOpenKeySettings, onPickElement, notice, showProtection = true }) {
+export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieFooter, adblock, onTogglePause, onTurnOnAdblock, onScan, onOpenReport, onOpenSettings, onOpenKeySettings, onPickElement, notice, showProtection = true }) {
   const top = report ? report.flags.filter(f => f.tier === 'concern').slice(0, 3) : [];
   const topLabel = top.length ? 'Top concerns' : 'Top findings';
   const shown = top.length ? top : (report ? report.flags.slice(0, 3) : []);
@@ -145,7 +145,7 @@ export function PopupHome({ report, status, errorMessage, site, siteUrl, cookieF
         )}
       </div>
 
-      {showProtection && <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} />}
+      {showProtection && <ProtectionFooter adblock={adblock} cookieFooter={cookieFooter} onTogglePause={onTogglePause} onTurnOn={onTurnOnAdblock} />}
     </div>
   );
 }

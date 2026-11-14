@@ -117,6 +117,19 @@ try {
   check(r.ad && r.tracker, 'ad and tracker requests allowed while paused');
   check(r.adShown, 'ad elements left alone while paused');
 
+  console.log('\n— master switch off, then back on');
+  await sw.evaluate(() => chrome.storage.sync.set({ pausedSites: [], adblockOn: false }));
+  await page.waitForTimeout(800);
+  r = await visit(page);
+  check(r.ad && r.tracker, 'ad and tracker requests allowed with the ad blocker off');
+  check(r.adShown, 'no element hiding with the ad blocker off');
+  const keptLists = await sw.evaluate(() => chrome.storage.sync.get(['blockAds', 'blockTrackers']));
+  check(keptLists.blockAds !== false && keptLists.blockTrackers !== false, 'list choices kept while the ad blocker is off');
+  await sw.evaluate(() => chrome.storage.sync.set({ adblockOn: true }));
+  await page.waitForTimeout(800);
+  r = await visit(page);
+  check(!r.ad && !r.tracker && !r.adShown, 'blocking back after turning the ad blocker on');
+
   console.log('\n— trackers only');
   await sw.evaluate(() => chrome.storage.sync.set({ pausedSites: [], blockAds: false, blockTrackers: true }));
   await page.waitForTimeout(800);

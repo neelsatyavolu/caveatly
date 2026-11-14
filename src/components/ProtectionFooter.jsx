@@ -6,7 +6,7 @@ const ON = 'var(--teal-700)';
 const OFF = 'var(--text-muted)';
 
 function adblockLine(adblock) {
-  if (!adblock.enabled) return { on: false, text: 'Ad blocker is off', action: null };
+  if (!adblock.enabled) return { on: false, text: 'Ad blocker is off', action: 'Turn on', turnOn: true };
   if (adblock.paused) return { on: false, text: 'Ad blocker paused on this site', action: 'Resume' };
   const n = adblock.blocked;
   const text = n == null ? 'Blocking ads and trackers'
@@ -29,7 +29,7 @@ function Row({ icon, on, children, action, onAction }) {
 }
 
 /** Popup footer: ad blocker status with a per-site pause, then the cookie guard. */
-export function ProtectionFooter({ adblock, cookieFooter, onTogglePause }) {
+export function ProtectionFooter({ adblock, cookieFooter, onTogglePause, onTurnOn }) {
   const line = adblock ? adblockLine(adblock) : null;
   return (
     <div style={{ padding: '8px 16px 10px', marginTop: 8, background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)' }}>
@@ -38,12 +38,12 @@ export function ProtectionFooter({ adblock, cookieFooter, onTogglePause }) {
           on={line.on}
           icon={line.on ? <ShieldCheck size={16} aria-hidden="true" /> : <ShieldOff size={16} aria-hidden="true" />}
           action={line.action}
-          onAction={onTogglePause}
+          onAction={line.turnOn ? onTurnOn : onTogglePause}
         >
           {line.text}
         </Row>
       )}
-      <Row on={cookieFooter.on} icon={<Cookie size={16} aria-hidden="true" />}>{cookieFooter.text}</Row>
+      {cookieFooter && <Row on={cookieFooter.on} icon={<Cookie size={16} aria-hidden="true" />}>{cookieFooter.text}</Row>}
     </div>
   );
 }
