@@ -1,11 +1,31 @@
 import { build } from 'esbuild';
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 
 rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
 
+// Ghostery's DOM monitor queues every element added since its last pass and
+// then reads the ids, classes and links of each one's whole subtree. A page
+// that re-renders a list with innerHTML adds the list again on every change,
+// so by the time the queue is read most of those elements are already gone,
+// and reading them made such pages up to 3x slower (Speedometer's jQuery and
+// vanilla TodoMVC). Elements no longer in the document can't be shown, so
+// their features don't matter: skip them. The build fails if the line moves.
+const skipDetachedNodes = {
+  name: 'skip-detached-nodes',
+  setup(b) {
+    b.onLoad({ filter: /@ghostery[\\/]adblocker-content[\\/]dist[\\/]esm[\\/]index\.js$/ }, args => {
+      const before = 'this.handleUpdatedNodes(Array.from(nodes));';
+      const source = readFileSync(args.path, 'utf8');
+      if (!source.includes(before)) throw new Error('skip-detached-nodes: Ghostery DOMMonitor changed; update build.mjs');
+      return { contents: source.replace(before, 'this.handleUpdatedNodes(Array.from(nodes).filter((node) => node.isConnected));'), loader: 'js' };
+    });
+  },
+};
+
 await build({
   entryPoints: ['src/popup.jsx', 'src/background.js', 'src/consent.js', 'src/pagescan.js', 'src/adblock.js', 'src/link-unwrap.js'],
+  plugins: [skipDetachedNodes],
   bundle: true,
   outdir: 'dist',
   format: 'iife',
