@@ -6,10 +6,13 @@ Privacy Policy with Gemini and flags what matters in three tiers
 design-system project (`ui_kits/extension`).
 
 **Website:** https://caveatly.xanom.co ·
+**Chrome Web Store:** [Caveatly](https://chromewebstore.google.com/detail/caveatly/cijangcodogjeincjiejfaolpdekgimf) ·
 **Download:** [caveatly.zip](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) ·
 **License:** [MIT](LICENSE)
 
-## Install from a release
+## Install
+
+Install Caveatly from the [Chrome Web Store](https://chromewebstore.google.com/detail/caveatly/cijangcodogjeincjiejfaolpdekgimf), or load a release build by hand:
 
 1. Download [`caveatly.zip`](https://github.com/neelsatyavolu/caveatly/releases/latest/download/caveatly.zip) and unzip it.
 2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick the unzipped `caveatly/` folder.
@@ -25,13 +28,14 @@ npm run build        # bundles into dist/
 1. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick `dist/`.
 2. Click the Caveatly toolbar icon → **Settings** → paste your Gemini API key (`AIza…` from aistudio.google.com).
    The key is stored in `chrome.storage.local` only — never synced.
-3. Visit any site, open the popup, and hit **Scan this page**. Optional: in Settings set **Auto-scan** so Caveatly scans when it finds terms/privacy on a domain you have not scanned yet (never when you only open the toolbar).
+3. Visit any site, open the popup, and hit **Scan this page**. When Caveatly finds terms/privacy on a domain you have not scanned yet, a small on-page toast offers to scan it. **Settings → Scanning** switches this between **Ask first** (the default), **Auto-scan** and **Off**. Opening the toolbar never starts a scan on its own.
 
 ## How a scan works
 
 1. `extract-page.js` is injected into the tab: finds Terms/Privacy links (or detects
    the page itself is a legal doc) and returns candidates.
-2. `background.js` fetches up to two policy documents, converts HTML → text.
+2. `background.js` fetches up to two policy documents and converts them to text
+   (HTML, or PDF via `unpdf`).
 3. `groq.js` (OpenAI-compatible client) sends the text to Gemini which returns
    tiered flags with plain-English titles, explanations, clause refs, and verbatim quotes.
 4. `report.js` computes the grade/stats deterministically from the flags; the report is
@@ -60,6 +64,7 @@ page views with a cookieless script. Full details: https://caveatly.xanom.co/pri
 ```bash
 npm run test:e2e     # loads the extension into Chromium, scans real sites
 npm run test:heartbeat  # unit test: daily usage ping + opt-out (no network)
+npm run test:popup-shell  # after a build: the popup stays compact in a wide window
 ```
 
 Visits github.com, stripe.com, and en.wikipedia.org; verifies extraction finds real
