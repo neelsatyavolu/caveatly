@@ -5,7 +5,14 @@ import { Cookie, ShieldCheck, ShieldOff } from 'lucide-react';
 const ON = 'var(--teal-700)';
 const OFF = 'var(--text-muted)';
 
-function adblockLine(adblock) {
+// Shown when a host browser (Perch) runs the ad blocker from its own settings.
+export const MANAGED_TEXT = 'Ad blocking is managed by Perch: Settings, Privacy.';
+
+function adblockLine(adblock, managed) {
+  if (managed) {
+    const line = adblockLine(adblock, false);
+    return { ...line, text: line.on ? line.text : MANAGED_TEXT, action: null };
+  }
   if (!adblock.enabled) return { on: false, text: 'Ad blocker is off', action: 'Turn on', turnOn: true };
   if (adblock.paused) return { on: false, text: 'Ad blocker paused on this site', action: 'Resume' };
   const n = adblock.blocked;
@@ -29,8 +36,8 @@ function Row({ icon, on, children, action, onAction }) {
 }
 
 /** Popup footer: ad blocker status with a per-site pause, then the cookie guard. */
-export function ProtectionFooter({ adblock, cookieFooter, onTogglePause, onTurnOn }) {
-  const line = adblock ? adblockLine(adblock) : null;
+export function ProtectionFooter({ adblock, cookieFooter, onTogglePause, onTurnOn, managed = false }) {
+  const line = adblock ? adblockLine(adblock, managed) : null;
   return (
     <div style={{ padding: '8px 16px 10px', marginTop: 8, background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)' }}>
       {line && (

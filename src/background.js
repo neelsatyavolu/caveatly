@@ -13,6 +13,7 @@ import { applyAdblockSettings, cosmeticsFor, adblockStatus, setSitePaused, initA
 import { initBrowserPrivacy } from './lib/browser-privacy.js';
 import { initLinkCleaning } from './lib/link-cleaning.js';
 import { initCustomRules } from './lib/custom-rules.js';
+import { initController } from './lib/controller.js';
 
 // ————— Scan pipeline —————
 // Finding and fetching documents lives in lib/doc-sources.js and lib/doc-fetch.js;
@@ -168,6 +169,7 @@ initBrowserPrivacy();
 initLinkCleaning();
 initCustomRules();
 initAdblockLists();
+initController();
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));

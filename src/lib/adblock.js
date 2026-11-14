@@ -90,7 +90,7 @@ async function applyPauseRule(pausedSites) {
     id: PAUSE_RULE_ID,
     priority: PAUSE_PRIORITY,
     action: { type: 'allowAllRequests' },
-    condition: { requestDomains: pausedSites, resourceTypes: ['main_frame'] },
+    condition: { requestDomains: pausedSites, resourceTypes: ['main_frame', 'sub_frame'] },
   }] : [];
   await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [PAUSE_RULE_ID], addRules });
 }

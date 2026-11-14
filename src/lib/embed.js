@@ -22,6 +22,10 @@ export const TELEMETRY_ALLOWED = EMBED.telemetry !== false;
 /** False only when the host set blocker:false: Caveatly is the fine-print grader only. */
 export const BLOCKER_ALLOWED = EMBED.blocker !== false;
 
+/** The host extension's id when it runs the ad blocker's on/off and site list
+ *  (controller:"<extension id>"), else null. See lib/controller.js. */
+export const CONTROLLER_ID = BLOCKER_ALLOWED && /^[a-p]{32}$/.test(EMBED.controller || '') ? EMBED.controller : null;
+
 // Features a host can hide one by one, and the settings each one turns off.
 const HIDEABLE = { gpc: ['gpc'], cookieGuard: ['block', 'autoReject'] };
 const HIDDEN = new Set(Array.isArray(EMBED.hide) ? EMBED.hide.filter(name => name in HIDEABLE) : []);

@@ -1,4 +1,4 @@
-import { applyEmbed } from './embed.js';
+import { applyEmbed, CONTROLLER_ID } from './embed.js';
 
 // Shared settings model. Preferences live in chrome.storage.sync; API keys stay
 // in chrome.storage.local (never synced off this machine).
@@ -44,11 +44,20 @@ export const DEFAULT_PROVIDER = 'gemini';
 // What the ad blocker master switch (adblockOn) turns off.
 export const ADBLOCK_KEYS = ['blockAds', 'blockTrackers', 'blockCookieNotices', 'blockAnnoyances'];
 
+// Last { on, sitesOff } from a host extension that runs the ad blocker (lib/controller.js).
+export const CONTROLLER_STATE_KEY = 'controllerState';
+
+async function controllerOverrides() {
+  if (!CONTROLLER_ID) return {};
+  const { [CONTROLLER_STATE_KEY]: state } = await chrome.storage.local.get(CONTROLLER_STATE_KEY);
+  return state ? { adblockOn: state.on, pausedSites: state.sitesOff } : {};
+}
+
 /** Stored settings as the settings screen shows them (each toggle's own value). */
 export async function getStoredSettings() {
-  const stored = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+  const [stored, controlled] = await Promise.all([chrome.storage.sync.get(DEFAULT_SETTINGS), controllerOverrides()]);
   // Embedded builds force some features off regardless of storage (lib/embed.js).
-  return applyEmbed({ ...DEFAULT_SETTINGS, ...stored });
+  return applyEmbed({ ...DEFAULT_SETTINGS, ...stored, ...controlled });
 }
 
 /** Settings in effect: with the ad blocker switched off, its lists read as off. */

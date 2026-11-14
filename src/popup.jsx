@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { PopupHome } from './screens/PopupHome.jsx';
 import { ReportPanel } from './screens/ReportPanel.jsx';
 import { SettingsPanel } from './screens/SettingsPanel.jsx';
-import { BLOCKER_ALLOWED, featureAllowed } from './lib/embed.js';
+import { BLOCKER_ALLOWED, CONTROLLER_ID, featureAllowed } from './lib/embed.js';
 import { getStoredSettings, saveSettings, getApiConfig, saveApiKey, DEFAULT_SETTINGS } from './lib/settings.js';
 
 // The popup normally targets the active tab. After an on-page scan the service
@@ -167,6 +167,7 @@ function App() {
       showProtection={BLOCKER_ALLOWED}
       onTogglePause={onTogglePause}
       onTurnOnAdblock={onTurnOnAdblock}
+      adblockManaged={Boolean(CONTROLLER_ID)}
       onScan={() => scan()}
       onOpenReport={() => setView('report')}
       onOpenSettings={() => { setSettingsFocus(null); setView('settings'); }}

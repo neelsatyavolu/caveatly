@@ -5,7 +5,8 @@ import { Section, SettingToggle } from './settings/Section.jsx';
 import { ApiKeyField } from './settings/ApiKeyField.jsx';
 import { ScanModePicker } from './settings/ScanModePicker.jsx';
 import { PausedSites, HiddenElements } from './settings/SiteLists.jsx';
-import { BLOCKER_ALLOWED, TELEMETRY_ALLOWED, featureAllowed } from '../lib/embed.js';
+import { BLOCKER_ALLOWED, CONTROLLER_ID, TELEMETRY_ALLOWED, featureAllowed } from '../lib/embed.js';
+import { MANAGED_TEXT } from '../components/ProtectionFooter.jsx';
 
 // Chrome applies privacy prefs asynchronously after a toggle is saved.
 const PRIVACY_STATUS_DELAY_MS = 300;
@@ -46,14 +47,16 @@ export function SettingsPanel({ settings, onSettingChange, apiKeys, onSaveApiKey
 
       {BLOCKER_ALLOWED && (<>
       <Section title="Ad blocking" id="ad-blocking">
-        {toggle('adblockOn', 'Ad blocker', 'Blocks ads, trackers and cookie notices. Turning it off keeps your choices for each list.')}
+        {CONTROLLER_ID
+          ? <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>{MANAGED_TEXT}</p>
+          : toggle('adblockOn', 'Ad blocker', 'Blocks ads, trackers and cookie notices. Turning it off keeps your choices for each list.')}
         {settings.adblockOn && (<>
         {toggle('blockAds', 'Block ads', 'On every site, including YouTube video ads and sponsored search results.')}
         {toggle('blockTrackers', 'Block trackers', 'Stops analytics and tracking requests.')}
         {toggle('blockCookieNotices', 'Hide cookie notices', 'Hides cookie banners the cookie guard can’t answer.')}
         {toggle('blockAnnoyances', 'Hide annoyances', 'Newsletter pop-ups, social share bars and chat bubbles. Can sometimes hide something you wanted.')}
         </>)}
-        <PausedSites sites={settings.pausedSites} onResume={site => onSettingChange('pausedSites', settings.pausedSites.filter(s => s !== site))} />
+        {!CONTROLLER_ID && <PausedSites sites={settings.pausedSites} onResume={site => onSettingChange('pausedSites', settings.pausedSites.filter(s => s !== site))} />}
         <HiddenElements />
       </Section>
 

@@ -115,6 +115,13 @@ adding a block to the packaged `manifest.json`:
   provides: `gpc` turns off the Global Privacy Control header, `cookieGuard` turns off
   cookie-banner clicking. Both are hidden from Settings.
 
+- `controller: "<extension id>"` — the host extension runs the ad blocker from its own settings.
+  Caveatly accepts `{ "type": "perch.blocker", "on": true, "sitesOff": ["example.com"] }` through
+  `chrome.runtime.onMessageExternal`, only from that id, and replies `{ "ok": true }`. `sitesOff`
+  hosts cover their subdomains. At startup Caveatly sends `{ "type": "caveatly.ready" }` to the
+  host and applies the reply; if the host doesn't answer, the last state is kept (in
+  `chrome.storage.local`). Caveatly's own **Ad blocker** switch and per-site pause are hidden.
+
 People can switch the whole ad blocker off and on with the **Ad blocker** switch at the top of
 Settings (or **Turn on** in the popup). Their choices for each list are kept while it is off.
 
