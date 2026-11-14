@@ -113,7 +113,9 @@ adding a block to the packaged `manifest.json`:
   entry to `"enabled": false`, so no ruleset is active before the service worker first runs.
 - `hide: ["gpc", "cookieGuard"]` — keeps the blocker but drops single features the host already
   provides: `gpc` turns off the Global Privacy Control header, `cookieGuard` turns off
-  cookie-banner clicking. Both are hidden from Settings.
+  cookie-banner clicking. Both are hidden from Settings. `cosmetics` drops Caveatly's element
+  hiding (its script in every frame, which watches the page for new elements) for a host that
+  hides elements itself; network blocking and scriptlets stay.
 
 - `controller: "<extension id>"` — the host extension runs the ad blocker from its own settings.
   Caveatly accepts `{ "type": "perch.blocker", "on": true, "sitesOff": ["example.com"] }` through

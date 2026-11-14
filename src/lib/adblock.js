@@ -13,6 +13,7 @@ import { ALLOW_ID_BASE, AD_RULESETS, TRACKER_RULESETS, COOKIE_RULESETS, ANNOYANC
 import { SCRIPTLET_PREFIX, enabledGroups, scriptletContentScripts, injectEntityScriptlets } from './adblock-scriptlets.js';
 import { SPONSORED_MATCHES } from './sponsored-matches.js';
 import { getSettings } from './settings.js';
+import { featureAllowed } from './embed.js';
 
 const PAUSE_RULE_ID = 2001;
 // Above every list rule (abp2dnr uses 1000 for blocks, 2000 for exceptions).
@@ -39,8 +40,9 @@ function contentScriptBase(settings) {
 
 function contentScriptsFor(settings) {
   const base = contentScriptBase(settings);
-  // Element hiding serves every enabled list (cookie notices can be on with ads off).
-  const cosmetics = enabledGroups(settings).length ? [{
+  // Element hiding serves every enabled list (cookie notices can be on with ads off),
+  // unless the host hides elements itself (caveatly_embed.hide "cosmetics").
+  const cosmetics = enabledGroups(settings).length && featureAllowed('cosmetics') ? [{
     ...base,
     id: `${SCRIPT_PREFIX}cosmetics`,
     js: ['adblock.js'],

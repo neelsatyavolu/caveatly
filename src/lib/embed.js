@@ -27,7 +27,9 @@ export const BLOCKER_ALLOWED = EMBED.blocker !== false;
 export const CONTROLLER_ID = BLOCKER_ALLOWED && /^[a-p]{32}$/.test(EMBED.controller || '') ? EMBED.controller : null;
 
 // Features a host can hide one by one, and the settings each one turns off.
-const HIDEABLE = { gpc: ['gpc'], cookieGuard: ['block', 'autoReject'] };
+// "cosmetics" is Caveatly's element hiding (adblock.js in every frame): a host
+// that hides elements itself can drop it and keep Caveatly's network blocking.
+const HIDEABLE = { gpc: ['gpc'], cookieGuard: ['block', 'autoReject'], cosmetics: [] };
 const HIDDEN = new Set(Array.isArray(EMBED.hide) ? EMBED.hide.filter(name => name in HIDEABLE) : []);
 
 /** False when the host hid this feature (or turned the whole blocker off). */

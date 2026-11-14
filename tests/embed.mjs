@@ -90,6 +90,7 @@ async function inspect({ context, sw }) {
 
 const embedDir = embeddedCopy();
 const hideDir = embeddedCopy({ telemetry: false, hide: ['gpc', 'cookieGuard'] });
+const noCosmeticsDir = embeddedCopy({ telemetry: false, hide: ['cosmetics'] });
 try {
   console.log('— embedded build (telemetry:false, blocker:false)');
   const embedded = await launch(embedDir);
@@ -115,6 +116,7 @@ try {
   check(n.heartbeatDay !== null, 'usage ping attempted (default on)');
   check(!n.adRequested && !n.adShown, 'ads blocked');
   check(n.headings.includes('ad blocking') && n.headings.includes('usage stats'), 'all settings sections shown');
+  check(n.scripts.includes('caveatly-cosmetics'), 'element-hiding script registered');
 
   console.log('\n— blocker on, host hides GPC and cookie guard');
   const hidden = await launch(hideDir);
@@ -126,10 +128,19 @@ try {
   check(h.headings.includes('ad blocking') && !h.headings.includes('cookie guard'), `cookie guard hidden (${h.headings.join(', ')})`);
   check(h.labels.some(l => /Block ads/.test(l)) && !h.labels.some(l => /Global Privacy Control/.test(l)), 'GPC toggle hidden, other toggles shown');
   check(h.heartbeatDay === null, 'no usage ping attempted');
+
+  console.log('\n— blocker on, host hides elements itself (hide: cosmetics)');
+  const bare = await launch(noCosmeticsDir);
+  const b = await inspect(bare);
+  await bare.context.close();
+  rmSync(bare.profile, { recursive: true, force: true });
+  check(!b.scripts.includes('caveatly-cosmetics'), `no element-hiding script (${b.scripts.join(', ') || 'none'})`);
+  check(b.rulesets.includes('easylist') && !b.adRequested, 'ad requests still blocked');
 } finally {
   server.close();
   rmSync(embedDir, { recursive: true, force: true });
   rmSync(hideDir, { recursive: true, force: true });
+  rmSync(noCosmeticsDir, { recursive: true, force: true });
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : '\nall embed checks passed');
