@@ -94,10 +94,14 @@ try {
   if (!sw) sw = await context.waitForEvent('serviceworker', { timeout: 15000 });
   const page = await context.newPage();
 
-  console.log('— defaults (unwrapLinks on, minimize off)');
+  console.log('— defaults (unwrapLinks on, minimize on)');
   let s = await waitForState(sw, x => x.scripts.includes('linkclean-unwrap') && x.rules.includes(4110));
+  check(s.rules.includes(1002), 'parameter stripping on by default');
   check(s.scripts.includes('linkclean-unwrap'), 'unwrap content script registered');
   check(s.rules.includes(4110), 'unwrap fallback rules installed');
+  console.log('\n— minimize off');
+  await sw.evaluate(() => chrome.storage.sync.set({ minimize: false }));
+  s = await waitForState(sw, x => !x.rules.includes(1002));
   check(!s.rules.includes(1002), 'no parameter-stripping rule while minimize is off');
 
   let hit = await clickAndLand(page, '#google');
